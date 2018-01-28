@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tx="http://www.springframework.org/schema/tx" xmlns:security="http://www.springframework.org/schema/security"
+	xmlns:p="http://www.springframework.org/schema/p" xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+	xsi:schemaLocation="http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.2.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.2.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.2.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.2.xsd 
+		http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc-3.2.xsd">
+
+	<description>
+	<![CDATA[
+	1、多数据源配置
+	<!-- 配置第2个数据源 -->
+	<bean id="dataSource2"
+		class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="com.mysql.jdbc.Driver" />
+		<property name="url"
+			value="jdbc:mysql://localhost:3306/foodmart?useUnicode=true&amp;characterEncoding=UTF-8&amp;zeroDateTimeBehavior=convertToNull&amp;useSSL=false" />
+		<property name="username" value="iff" />
+		<property name="password" value="iff" />
+	</bean>
+	<!-- 配置第2个事务管理器 -->
+	<bean id="transactionManager2"
+		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="routingDataSource" />
+	</bean>
+
+	<!-- 
+		配置动态数据源路由，根据事务管理器的名称来决定使用哪个数据源，事务名称及数据源对应下面配置，默认为：transactionManager（必须），
+		把其他数据源的引用都改为动态数据源，如：<property name="dataSource" ref="routingDataSource" />
+		在使用非默认数据源需要在Application实现中配置事务管理器名称，如：
+		@Named("functionApplication")
+		@Transactional("transactionManager2")
+		public class FunctionApplicationImpl implements FunctionApplication { 
+	-->
+	<bean id="routingDataSource" class="com.foreveross.common.MutiRoutingDataSource">
+		<property name="targetDataSources">
+			<map key-type="java.lang.String">
+				<entry key="transactionManager" value-ref="dataSource" />
+				<entry key="transactionManager2" value-ref="dataSource2" />
+			</map>
+		</property>
+	</bean>
+	]]>
+	</description>
+
+	<!-- Instructs Spring to perfrom declarative transaction managemenet on annotated classes -->
+
+	<!-- in-memory database and a datasource	 	-->
+	<bean id="dataSource" class="org.h2.jdbcx.JdbcConnectionPool" destroy-method="dispose">
+		<constructor-arg>
+			<bean class="org.h2.jdbcx.JdbcDataSource">
+				<property name="URL" value="jdbc:h2:mem:testdb;DATABASE_TO_UPPER=FALSE"/>
+				<property name="user" value="sa"/>
+				<property name="password" value=""/>
+			 </bean>
+		</constructor-arg>
+	</bean>
+	<jdbc:initialize-database data-source="dataSource">
+		<jdbc:script location="classpath:database/*-table-h2.sql" encoding="UTF-8"/>
+		<jdbc:script location="classpath:database/*-data-h2.sql" encoding="UTF-8"/>
+	</jdbc:initialize-database>
+
+
+ 	<!-- mysql
+ 	<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+        <property name="driverClassName" value="${jdbc.driverClassName}" />
+        <property name="url" value="${jdbc.url}" />
+        <property name="username" value="${jdbc.username}" />
+        <property name="password" value="iff" />
+        <property name="defaultAutoCommit" value="false" />
+        <property name="initialSize" value="10" />
+        <property name="maxActive" value="20" />
+        <property name="maxWait" value="1000" />
+    </bean>
+     -->
+    
+ 	<!-- do not use this driver in production environment.
+ 	<bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+        <property name="driverClassName" value="com.mysql.jdbc.Driver"/>
+        <property name="url" value="jdbc:mysql://localhost:3306/new_qdp?useUnicode=true&amp;characterEncoding=UTF-8&amp;zeroDateTimeBehavior=convertToNull"/>
+        <property name="username" value="iff" />
+        <property name="password" value="iff" />
+    </bean>
+ 	 -->
+ 	<!-- oracle
+    <bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">  
+		<property name="driverClassName" value="oracle.jdbc.OracleDriver" />
+		<property name="url" value="jdbc:oracle:thin:@127.0.0.1:1521:AUTH" />
+		<property name="username" value="test" />
+		<property name="password" value="test" />
+	</bean>
+	 -->
+<!-- 	<bean id="dencryptPassword" factory-bean="encryptDencryptPassword" factory-method="dencryptPassword">
+		<constructor-arg index="0" value="${jdbc.password}" />
+		<constructor-arg index="1" value="${rsa.key.private.base64}" />
+	</bean>
+	<bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource" destroy-method="close">
+		<description>https://github.com/alibaba/druid/wiki</description>
+		<property name="driverClassName" value="${jdbc.driverClassName}">
+			<description>基本属性driverClass、url、user、password</description>
+		</property>
+		<property name="url" value="${jdbc.url}">
+			<description>基本属性driverClass、url、user、password</description>
+		</property>
+		<property name="username" value="${jdbc.username}">
+			<description>基本属性driverClass、url、user、password</description>
+		</property>
+		<property name="password" ref="dencryptPassword">
+			<description>基本属性driverClass、url、user、password</description>
+		</property>
+
+		<property name="filters" value="stat">
+			<description>配置监控统计拦截的filters</description>
+		</property>
+
+		<property name="initialSize" value="${jdbc.initialSize}">
+			<description>配置初始化大小、最小、最大</description>
+		</property>
+		<property name="minIdle" value="1">
+			<description>配置初始化大小、最小、最大</description>
+		</property>
+		<property name="maxActive" value="${jdbc.maxActive}">
+			<description>配置初始化大小、最小、最大</description>
+		</property>
+
+		<property name="maxWait" value="60000">
+			<description>配置获取连接等待超时的时间</description>
+		</property>
+
+		<property name="timeBetweenEvictionRunsMillis" value="60000">
+			<description>配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒</description>
+		</property>
+		<property name="minEvictableIdleTimeMillis" value="300000">
+			<description>配置一个连接在池中最小生存的时间，单位是毫秒</description>
+		</property>
+
+		<property name="validationQuery" value="${jdbc.validationQuery}" />
+		<property name="testWhileIdle" value="true" />
+		<property name="testOnBorrow" value="false" />
+		<property name="testOnReturn" value="false" />
+
+		<property name="poolPreparedStatements" value="true">
+			<description>打开PSCache，并且指定每个连接上PSCache的大小，如果用Oracle，则把poolPreparedStatements配置为true，mysql可以配置为false。分库分表较多的数据库，建议配置为false。
+			</description>
+		</property>
+		<property name="maxPoolPreparedStatementPerConnectionSize" value="20">
+			<description>打开PSCache，并且指定每个连接上PSCache的大小，如果用Oracle，则把poolPreparedStatements配置为true，mysql可以配置为false。分库分表较多的数据库，建议配置为false。
+			</description>
+		</property>
+
+		<property name="timeBetweenLogStatsMillis" value="300000">
+			<description>定时输出统计信息到日志中: ms</description>
+		</property>
+
+		<property name="connectionProperties" value="">
+			<description>
+			<![CDATA[
+			数据库密码加密
+			public static void main(String[] args) throws Exception {
+				com.alibaba.druid.filter.config.ConfigTools.main(new String[] { "yourPassword" });
+			}
+			== out put ===
+			privateKey:MIIBVgIBADANBgkqhkiG9w0BAQEFAASCAUAwggE8AgEAAkEA6+4avFnQKP+O7bu5YnxWoOZjv3no4aFV558HTPDoXs6EGD0HP7RzzhGPOKmpLQ1BbA5viSht+aDdaxXp6SvtMQIDAQABAkAeQt4fBo4SlCTrDUcMANLDtIlax/I87oqsONOg5M2JS0jNSbZuAXDv7/YEGEtMKuIESBZh7pvVG8FV531/fyOZAiEA+POkE+QwVbUfGyeugR6IGvnt4yeOwkC3bUoATScsN98CIQDynBXC8YngDNwZ62QPX+ONpqCel6g8NO9VKC+ETaS87wIhAKRouxZL38PqfqV/WlZ5ZGd0YS9gA360IK8zbOmHEkO/AiEAsES3iuvzQNYXFL3x9Tm2GzT1fkSx9wx+12BbJcVD7AECIQCD3Tv9S+AgRhQoNcuaSDNluVrL/B/wOmJRLqaOVJLQGg==
+			publicKey:MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAOvuGrxZ0Cj/ju27uWJ8VqDmY7956OGhVeefB0zw6F7OhBg9Bz+0c84RjzipqS0NQWwOb4kobfmg3WsV6ekr7TECAwEAAQ==
+			password:PNak4Yui0+2Ft6JSoKBsgNPl+A033rdLhFw+L0np1o+HDRrCo9VkCuiiXviEMYwUgpHZUFxb2FpE0YmSguuRww==
+			== change filters ==
+			<property name="filters" value="config,stat" />
+			== add this config ==
+			<property name="connectionProperties" value="config.decrypt=true;config.decrypt.key=${jdbc.encrypt.publicKey}" />
+			]]>
+			</description>
+		</property>
+	</bean> -->
+
+	<bean id="pagePlugin" class="org.iff.infra.util.mybatis.plugin.PagePlugin">
+		<property name="properties">
+			<props>
+				<prop key="dialect">org.iff.infra.util.jdbc.dialet.MySQLDialect</prop>
+				<prop key="pageSqlId">.*pageFind.*</prop>
+			</props>
+		</property>
+	</bean>
+	
+	<bean id="uuidPlugin" class="org.iff.infra.util.mybatis.plugin.UUIDPlugin"/>
+
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.foreveross.qdp,com.foreveross.common,com.foreveross.extension" />
+		<property name="annotationClass" value="org.iff.infra.util.mybatis.mapper.Mapper" />
+	</bean>
+
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+		<property name="typeAliasesPackage" value="com.foreveross.qdp,com.foreveross.common,com.foreveross.extension" />
+		<property name="plugins">
+			<array>
+				<ref bean="pagePlugin" />
+				<ref bean="uuidPlugin" />
+			</array>
+		</property>
+		<property name="mapperLocations">
+			<list>
+				<value>classpath*:/META-INF/mappings/**/*Mapper-mysql.xml</value>
+			</list>
+		</property>
+	</bean>
+
+	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+
+	<bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate">
+		<constructor-arg index="0" ref="sqlSessionFactory" />
+	</bean>
+	
+	<bean id="tcRepositoryService" class="org.iff.infra.util.mybatis.service.impl.MybatisRepositoryServiceImpl" />
+	<bean id="tcSqlService" class="org.iff.infra.util.mybatis.service.impl.MybatisSqlServiceImpl" />
+	
+	<bean id="logJdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">  
+        <property name="dataSource" ref="dataSource" />  
+	</bean>
+</beans>

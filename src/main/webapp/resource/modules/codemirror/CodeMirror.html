@@ -1,0 +1,75 @@
+<template>
+	<div class="qdp-list-layout">
+		<div class="qdp-sql-editor">
+			<div style="height: 20px;background-color: #f7f7f7;padding: 5px 0;">SQL Editor(Ctrl-/:autocomplete)</div>
+			<textarea rows="5" cols="100" style="width: 100%;" :class="className"></textarea>
+		</div>
+	</div>
+</template>
+<script type="text/javascript">
+	define([ 'vue', 'css!codemirror/lib/codemirror', 'css!codemirror/addon/hint/show-hint', 'codemirror', 'codemirror/mode/sql/sql',
+			'codemirror/addon/hint/show-hint', 'codemirror/addon/hint/sql-hint' ], function(Vue, Css1, Css2, CodeMirror) {
+		return {
+			template : template, //
+			name : 'Code-mirror',
+			//设置选择
+			data : function() {
+				return {
+					editor : null,
+					className: ""
+				};
+			}, //
+			created : function() {
+				this.className = "sql-editor-"+qdpRandom();
+			}, //
+			mounted : function() {
+				this.initEditor();
+			},//
+			beforeDestroy : function() {
+				this.editor.toTextArea();
+			},//
+			methods : {
+				initEditor : function() {
+					var root = this;
+					var hintOptions = {
+						tables : {
+							"test_table" : {
+								"column1" : null, "id" : null
+							}, "test_table-duplicate" : {
+								"column1" : null, "id" : null
+							}, "test_view" : {
+								"column1" : null, "id" : null
+							}
+						}
+					};
+					var id = document.getElementsByClassName(root.className)[0];
+					root.editor = CodeMirror.fromTextArea(id, {
+						mode : 'text/x-mysql', indentWithTabs : true, smartIndent : true, lineNumbers : true, lineWrapping : true, matchBrackets : true,
+						autofocus : true, extraKeys : {
+							"Ctrl-/" : "autocomplete"
+						}, hintOptions : hintOptions
+					});
+					root.editor.on('keyup', function(instance, event) {
+						if (!root.editor.state.completionActive && (event.keyCode > 64 && event.keyCode < 91)) {
+							if (timeout) {
+								clearTimeout(timeout);
+							}
+							var timeout = setTimeout(function() {
+								CodeMirror.showHint(instance, CodeMirror.hint.clike, {
+									completeSingle : true
+								});
+							}, 40);
+						}
+					});
+				},// 
+				getContent: function(){
+					return this.editor.getValue();
+				},//
+				onPost : function(eventType, arg0, arg1, arg2, arg3) {
+					LOG("EV: onPost." + eventType);
+					var root = this;
+				}
+			}
+		};
+	});
+</script>

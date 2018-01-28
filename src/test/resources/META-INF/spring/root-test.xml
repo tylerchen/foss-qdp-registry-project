@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+        http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.2.xsd
+        http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.2.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.2.xsd" >
+	
+	<!-- 
+	<bean id="propertyConfigurer"
+		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="localOverride" value="true" />
+		<property name="placeholderPrefix" value="$A{" />
+		<property name="placeholderSuffix" value="}" />
+		<property name="locations">
+			<list>
+				<value>classpath*:META-INF/config/*.properties</value>
+			</list>
+		</property>
+	</bean>
+	 -->
+	<aop:aspectj-autoproxy />
+	<context:property-placeholder location="classpath:/META-INF/config/*.properties" file-encoding="UTF-8" ignore-unresolvable="true" order="-1000"/>
+	<context:annotation-config />
+	<context:component-scan base-package="com.foreveross.qdp,com.foreveross.common,com.foreveross.extension">
+		<context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller" />
+		<context:exclude-filter type="annotation" expression="org.springframework.boot.autoconfigure.SpringBootApplication" />
+		<!-- 关闭 activiti 工作流 -->
+		<context:exclude-filter type="regex" expression="com.foreveross.extension.activiti.*"/>
+		<!-- type="regex", expression="com\.Default*" , 过滤掉com下的且类名以Default开头的类 -->
+		<!-- type="assignable" expression="com.MovieFinder" 过滤掉com下的类名为MovieFinder的类 -->   
+	</context:component-scan>
+	<tx:annotation-driven />
+	
+	<import resource="classpath:META-INF/spring-tcutil/tc-util.xml" />
+	<import resource="classpath:META-INF/spring-cache/root.xml" />
+	<import resource="classpath:META-INF/spring-app/spring-common.xml" />
+	<import resource="spring-data-access.xml" />
+	<import resource="classpath:META-INF/spring-auth/root.xml" />
+	<import resource="classpath:META-INF/spring-cxf/root.xml" />
+	<!-- <import resource="classpath:META-INF/spring-openreport/root.xml" /> -->
+	<!-- <context:exclude-filter type="regex" expression="com.foreveross.extension.activiti.*"/> -->
+	<!-- <import resource="classpath:META-INF/spring-workflow/root.xml" /> -->
+	<import resource="classpath:META-INF/spring-tcutil/spring-quartz.xml" />
+</beans>

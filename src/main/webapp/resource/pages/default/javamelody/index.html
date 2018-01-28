@@ -1,0 +1,60 @@
+<template>
+	<div class="qdp-list-layout">
+		<!-- 搜索 -->
+		<!-- 搜索-END -->
+		<!-- 操作栏 -->
+		<!-- 操作栏-END- -->
+		<!-- 列表 -->
+		<el-row class="qdp-list-content qdp-grid" type="flex" justify="start" align="top">
+			<iframe :src="iframeUrl" width="100%" height="800px">
+			</iframe>
+		</el-row>
+		<!-- 列表-END -->
+		<!-- 分页 -->
+		<!-- 分页-END -->
+		<!-- 添加 -->
+		<!-- 添加-END -->
+		<!-- 修改 -->
+		<!-- 修改-END -->
+		<!-- 详情 -->
+		<!-- 详情-END -->
+	</div>
+</template>
+<script type="text/javascript">
+	define([ 'vue'], function(Vue) {
+		return {
+			template : template, //
+			components : {
+				
+			},
+			data : function() {
+				return {
+					//===
+					hotKey : {
+					},
+					searchForm : {
+						id : '', name : '', dataSource : '', queryContent : '', type1 : '', type2 : '', description : '', updateTime : '', createTime : ''
+					},
+					enums : {},
+					iframeUrl: ctx+'/monitor/javamelody'
+				};
+			}, //
+			created : function() {
+			}, //
+			mounted : function() {
+				//快捷键
+			},//
+			beforeDestroy : function() {
+				//快捷键
+			},//
+			methods : {
+				cache : getters.cache,//
+				accountId : getters.accountId, 
+				//
+				onPost : function(eventType, arg0, arg1, arg2, arg3) {
+				}
+			}
+		};
+	});
+</script>
+

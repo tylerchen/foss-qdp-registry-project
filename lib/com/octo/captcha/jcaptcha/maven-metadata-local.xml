@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata>
+  <groupId>com.octo.captcha</groupId>
+  <artifactId>jcaptcha</artifactId>
+  <versioning>
+    <versions>
+      <version>2.0-alpha-1-SNAPSHOT</version>
+    </versions>
+    <lastUpdated>20160810121131</lastUpdated>
+  </versioning>
+</metadata>

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE log4j:configuration PUBLIC "-//Apache//DTD Log4j 1.2//EN"
+                                    "http://logging.apache.org/log4j/docs/api/org/apache/log4j/xml/log4j.dtd">
+<log4j:configuration>
+	<appender class="org.apache.log4j.ConsoleAppender" name="RootConsoleAppender">
+		<param name="Threshold" value="debug,info" />
+		<layout class="org.iff.infra.util.ThreadIdPatternLayout">
+			<param name="ConversionPattern" value=" [%-d{yyyy-MM-dd HH:mm:ss}] [%p] [%C{1}:%L] [%t] %m%n" />
+		</layout>
+	</appender>
+	<appender class="org.apache.log4j.RollingFileAppender" name="FileAppender">
+		<param name="Threshold" value="info" />
+		<param name="File" value="log-%-d{yyyy-MM-dd}.log" />
+		<param name="MaxFileSize" value="100MB" />
+		<param name="MaxBackupIndex" value="10" />
+		<layout class="org.iff.infra.util.ThreadIdPatternLayout">
+			<param name="ConversionPattern" value=" [%-d{yyyy-MM-dd HH:mm:ss}] [%p] [%C{1}:%L] [%t] %m%n" />
+		</layout>
+	</appender>
+	<!-- <appender class="com.foreveross.common.log.SocketAppender" name="SocketAppender">
+		<param name="Port" value="5678" />
+		<param name="RemoteHost" value="121.40.74.22" />
+		<param name="ReconnectionDelay" value="10000" />
+		<param name="Application" value="ods" />
+		<layout class="org.iff.infra.util.ThreadIdPatternLayout">
+			<param name="ConversionPattern" value=" [%-d{yyyy-MM-dd HH:mm:ss}] [%p] [%C{1}:%L] [%t] %m%n" />
+		</layout>
+	</appender> -->
+
+	<logger name="org.springframework">
+		<level value="INFO" />
+	</logger>
+
+	<logger name="FOSS">
+		<level value="debug" />
+	</logger>
+	
+	<logger name="TRACE">
+		<level value="debug" />
+	</logger>
+	
+	<root>
+		<level value="info" />
+		<appender-ref ref="RootConsoleAppender" />
+		<!-- <appender-ref ref="SocketAppender" /> -->
+	</root>
+
+</log4j:configuration>

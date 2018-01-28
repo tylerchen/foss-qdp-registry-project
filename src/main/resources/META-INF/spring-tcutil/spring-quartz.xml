@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:util="http://www.springframework.org/schema/util" xmlns:lang="http://www.springframework.org/schema/lang"
+	xsi:schemaLocation="
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.2.xsd
+        http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.2.xsd
+        http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang-3.2.xsd">
+        <description>
+        <![CDATA[
+        === Usage ===
+        1. add quartz dependency
+        	<dependency>
+				<groupId>org.quartz-scheduler</groupId>
+				<artifactId>quartz</artifactId>
+				<version>2.2.3</version>
+			</dependency>
+        2. add quartz spring config
+        	META-INF/spring-app/root.xml
+        	<import resource="classpath:META-INF/spring-tcutil/spring-quartz.xml" />
+        3. add quartz config
+        	META-INF/config/quartz.properties
+        4. import quartz database
+        	database/003-qdp-quartz-table-*.sql
+        ]]>
+        </description>
+    <!-- 
+	<bean id="quartzDencryptPassword" factory-bean="encryptDencryptPassword"
+		factory-method="dencryptPassword">
+		<constructor-arg index="0" value="${quartz.jdbc.password}" />
+		<constructor-arg index="1"
+			value="${quartz.rsa.key.private.base64}" />
+	</bean>
+	<bean id="quartzDataSource" class="com.alibaba.druid.pool.DruidDataSource"
+		destroy-method="close">
+		<description>https://github.com/alibaba/druid/wiki</description>
+		<property name="driverClassName" value="${quartz.jdbc.driverClassName}">
+			<description>基本属性driverClass、url、user、password</description>
+		</property>
+		<property name="url" value="${quartz.jdbc.url}">
+			<description>基本属性driverClass、url、user、password</description>
+		</property>
+		<property name="username" value="${quartz.jdbc.username}">
+			<description>基本属性driverClass、url、user、password</description>
+		</property>
+		<property name="password" ref="quartzDencryptPassword">
+			<description>基本属性driverClass、url、user、password</description>
+		</property>
+
+		<property name="filters" value="stat">
+			<description>配置监控统计拦截的filters</description>
+		</property>
+
+		<property name="initialSize" value="${quartz.initialSize}">
+			<description>配置初始化大小、最小、最大</description>
+		</property>
+		<property name="minIdle" value="1">
+			<description>配置初始化大小、最小、最大</description>
+		</property>
+		<property name="maxActive" value="${quartz.maxActive}">
+			<description>配置初始化大小、最小、最大</description>
+		</property>
+
+		<property name="maxWait" value="60000">
+			<description>配置获取连接等待超时的时间</description>
+		</property>
+
+		<property name="timeBetweenEvictionRunsMillis" value="60000">
+			<description>配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒</description>
+		</property>
+		<property name="minEvictableIdleTimeMillis" value="300000">
+			<description>配置一个连接在池中最小生存的时间，单位是毫秒</description>
+		</property>
+
+		<property name="validationQuery" value="${quartz.validationQuery}" />
+		<property name="testWhileIdle" value="true" />
+		<property name="testOnBorrow" value="false" />
+		<property name="testOnReturn" value="false" />
+
+		<property name="poolPreparedStatements" value="true">
+			<description>打开PSCache，并且指定每个连接上PSCache的大小，如果用Oracle，则把poolPreparedStatements配置为true，mysql可以配置为false。分库分表较多的数据库，建议配置为false。
+			</description>
+		</property>
+		<property name="maxPoolPreparedStatementPerConnectionSize"
+			value="20">
+			<description>打开PSCache，并且指定每个连接上PSCache的大小，如果用Oracle，则把poolPreparedStatements配置为true，mysql可以配置为false。分库分表较多的数据库，建议配置为false。
+			</description>
+		</property>
+
+		<property name="timeBetweenLogStatsMillis" value="300000">
+			<description>定时输出统计信息到日志中: ms</description>
+		</property>
+
+		<property name="connectionProperties" value="">
+			<description>
+			<![CDATA[
+			数据库密码加密，考虑使用QDP自带的加密解密
+			public static void main(String[] args) throws Exception {
+				com.alibaba.druid.filter.config.ConfigTools.main(new String[] { "yourPassword" });
+			}
+			== out put ===
+			privateKey:MIIBVgIBADANBgkqhkiG9w0BAQEFAASCAUAwggE8AgEAAkEA6+4avFnQKP+O7bu5YnxWoOZjv3no4aFV558HTPDoXs6EGD0HP7RzzhGPOKmpLQ1BbA5viSht+aDdaxXp6SvtMQIDAQABAkAeQt4fBo4SlCTrDUcMANLDtIlax/I87oqsONOg5M2JS0jNSbZuAXDv7/YEGEtMKuIESBZh7pvVG8FV531/fyOZAiEA+POkE+QwVbUfGyeugR6IGvnt4yeOwkC3bUoATScsN98CIQDynBXC8YngDNwZ62QPX+ONpqCel6g8NO9VKC+ETaS87wIhAKRouxZL38PqfqV/WlZ5ZGd0YS9gA360IK8zbOmHEkO/AiEAsES3iuvzQNYXFL3x9Tm2GzT1fkSx9wx+12BbJcVD7AECIQCD3Tv9S+AgRhQoNcuaSDNluVrL/B/wOmJRLqaOVJLQGg==
+			publicKey:MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAOvuGrxZ0Cj/ju27uWJ8VqDmY7956OGhVeefB0zw6F7OhBg9Bz+0c84RjzipqS0NQWwOb4kobfmg3WsV6ekr7TECAwEAAQ==
+			password:PNak4Yui0+2Ft6JSoKBsgNPl+A033rdLhFw+L0np1o+HDRrCo9VkCuiiXviEMYwUgpHZUFxb2FpE0YmSguuRww==
+			== change filters ==
+			<property name="filters" value="config,stat" />
+			== add this config ==
+			<property name="connectionProperties" value="config.decrypt=true;config.decrypt.key=${jdbc.encrypt.publicKey}" />
+			]]>
+			</description>
+		</property>
+	</bean>
+	 -->
+
+	<bean id="quartzScheduler" lazy-init="false"
+		class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+		<!-- <property name="dataSource" ref="quartzDataSource" /> -->
+		<property name="autoStartup" value="true" >
+			<description>自动启动</description>
+		</property>
+		<property name="startupDelay" value="20" >
+			<description>延时启动</description>
+		</property>
+		<property name="applicationContextSchedulerContextKey" value="applicationContextKey" />
+		<property name="configLocation" value="classpath:META-INF/config/quartz.properties" />
+	</bean>
+
+	<!-- 
+	 -->
+	<bean id="dynamicSchedulerUtil" class="com.foreveross.extension.quartz.QuartzSchedulerHelper">
+		<description>协同-调度器, 不要变更“调度器名称”, 任务创建时会绑定该“调度器名称”</description>
+		<property name="scheduler" ref="quartzScheduler" />
+	</bean>
+<!-- 
+		//		{
+		//			try {
+		//				System.out.println("======>" + QuartzSchedulerHelper.getScheduler());
+		//				if (!QuartzSchedulerHelper.checkExists("test", "test")) {
+		//					QuartzJobInfo info = BeanHelper.copyProperties(QuartzJobInfo.class,
+		//							MapHelper.toMap("jobGroup", "test", "jobName", "test", "jobCron", "0/5 * * * * ?",
+		//									"jobClass", "com.foreveross.extension.quartz.CustomQuartzJobBean", "jobData",
+		//									"{'id':'test'}"));
+		//					QuartzSchedulerHelper.addJob(info);
+		//				}
+		//				{
+		//					QuartzSchedulerHelper.pauseJob("test", "test");
+		//					JobKey jobKey = new JobKey("test", "test");
+		//					QuartzSchedulerHelper.getScheduler().deleteJob(jobKey);
+		//					QuartzSchedulerHelper.removeJob("test", "test");
+		//				}
+		//			} catch (Exception e) {
+		//				e.printStackTrace();
+		//			}
+		//		}
+ -->
+<!-- 
+public class CustomQuartzJobBean extends QuartzJobBean {
+
+	protected void executeInternal(JobExecutionContext context) throws JobExecutionException {
+		System.out.println("com.foreveross.extension.quartz.CustomQuartzJobBean: "
+				+ context.getJobDetail().getJobDataMap());
+	}
+
+}
+ -->
+<!-- 	
+	<bean id="jobDetail"
+		class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+		<property name="targetObject">
+			<ref bean="quartzTaskTest" />
+		</property>
+		<property name="targetMethod">
+			<value>say</value>
+		</property>
+		<property name="concurrent">
+			<value>false</value>
+		</property>
+	</bean>
+
+	<lang:groovy id="quartzTaskTest">
+		<lang:inline-script>
+		<![CDATA[
+package org.iff.test;
+import java.util.Date;
+public class TaskTest {
+@groovy.transform.CompileStatic
+public void say() {
+System.out.println("这个真好用!!!" + new Date());
+}
+@groovy.transform.CompileStatic
+public void hello(){
+System.out.println("hello!!!");
+}
+}
+		]]>
+		</lang:inline-script>
+	</lang:groovy>
+	<bean id="jobTrigger"
+		class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+		<property name="jobDetail">
+			<ref bean="jobDetail" />
+		</property>
+		<property name="cronExpression">
+			<description>每5s执行一次</description>
+			<value>0/5 * * * * ?</value>
+		</property>
+	</bean>
+
+	<bean id="schedulerFactoryBean"
+		class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+		<property name="triggers">
+			<list>
+				<ref bean="jobTrigger" />
+			</list>
+		</property>
+	</bean> -->
+</beans>

@@ -1,0 +1,82 @@
+<template>
+	<div class="qdp-list-layout">
+		<!-- 搜索 -->
+		<!-- 搜索-END -->
+		<!-- 操作栏 -->
+		<!-- 操作栏-END- -->
+		<!-- 列表 -->
+		<el-row class="qdp-list-content qdp-grid" type="flex" justify="start" align="top">
+			<el-col :span="24">
+				<el-upload class="upload-demo" :action="uploadUrl" :on-preview="handlePreview" :on-remove="handleRemove" :on-success="handleSuccess" multiple :limit="3" :on-exceed="handleExceed">
+					<el-button size="small" type="primary">点击上传</el-button>
+					<div slot="tip" class="el-upload__tip">只能上传jpg/png文件，且不超过500kb</div>
+				</el-upload>
+            	<Code-mirror ref="codeMirror"></Code-mirror>
+            	<el-button @click="showCode">Show Code</el-button>
+			</el-col>
+		</el-row>
+		<!-- 列表-END -->
+		<!-- 分页 -->
+		<!-- 分页-END -->
+		<!-- 添加 -->
+		<!-- 添加-END -->
+		<!-- 修改 -->
+		<!-- 修改-END -->
+		<!-- 详情 -->
+		<!-- 详情-END -->
+	</div>
+</template>
+<script type="text/javascript">
+	define([ 'vue', 'vuel!codemirror/CodeMirror.html', "encrypt", "qdp" ], function(Vue, CodeMirror) {
+		return {
+			template : template, //
+			components : {
+				CodeMirror: CodeMirror
+			},
+			data : function() {
+				return {
+					uploadUrl: ctx + '/file/upload.do',
+	            	uploadRemoveUrl: ctx + '/file/remove.do'
+				};
+			}, //
+			created : function() {
+			}, //
+			mounted : function() {
+				//快捷键
+			},//
+			beforeDestroy : function() {
+				//快捷键
+			},//
+			methods : {
+				cache : getters.cache,//
+				accountId : getters.accountId, //
+				/// file upload
+	            handleRemove: function(file, fileList) {
+			        var root = this;
+			        root.$http.post(root.uploadRemoveUrl, ((file||{}).response||{}).body||{}).then(function(data) {
+	                    root.$message.info("删除成功");
+	                },
+	                function(response) {
+	                    root.$message.info("删除失败");
+	                });
+			      },
+			      handlePreview: function (file) {
+			        console.log(file);
+			      },
+			      handleExceed: function (files, fileList) {
+			        this.$message.warning("当前限制选择 3 个文件，本次选择了 "+files.length+" 个文件，共选择了 "+(files.length + fileList.length)+" 个文件");
+			      },
+			      handleSuccess: function (response, file, fileList) {
+			    	  this.fileList = fileList;
+			      },
+	            ///code mirror
+			      showCode : function(){
+		            	alert(this.$refs.codeMirror.getContent())
+		            },
+	            ///
+				onPost : function(eventType, arg0, arg1, arg2, arg3) {
+				}
+			}
+		};
+	});
+</script>

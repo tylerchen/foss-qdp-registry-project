@@ -1,0 +1,216 @@
+#!/bin/sh
+
+# OPTIONS:
+#   -d: daemonize, start in the background
+#   -p <filename>: log the pid to a file (useful to kill it later)
+
+# CONTROLLING STARTUP:
+#
+# This script relies on few environment variables to determine startup
+# behavior, those variables are:
+#
+#   SERVER_CLASSPATH -- A Java classpath containing everything necessary to run.
+#   JAVA_OPTS    -- Additional arguments to the JVM for heap size, etc
+#   JAVA_OPTS    -agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=8787
+#   JVM_JAVA_OPTS -- External Java Opts on top of the defaults set
+#
+#
+# Optionally, exact memory values can be set using the following values, note,
+# they can still be set using the `Dr_JAVA_OPTS`. Sample format include "512m", and "10g".
+#
+#  	JVM_HEAP_SIZE -- Sets both the minimum and maximum memory to allocate (recommended)
+#
+# As a convenience, a fragment of shell is sourced in order to set one or
+# more of these variables. This so-called `include' can be placed in a
+# number of locations and will be searched for in order. The lowest
+# priority search path is the same directory as the startup script, and
+# since this is the location of the sample in the project tree, it should
+# almost work Out Of The Box.
+#
+# Any serious use-case though will likely require customization of the
+# include. For production installations, it is recommended that you copy
+# the sample to one of /usr/share/$SERVER_NAME/setenv.sh,
+# /usr/local/share/$SERVER_NAME/setenv.sh, or
+# /opt/$SERVER_NAME/setenv.sh and make your modifications there.
+#
+# Another option is to specify the full path to the include file in the
+# environment. For example:
+#
+#   $ SERVER_INCLUDE=/path/to/in.sh server -p /var/run/server.pid
+#
+# Note: This is particularly handy for running multiple instances on a
+# single installation, or for quick tests.
+#
+# If you would rather configure startup entirely from the environment, you
+# can disable the include by exporting an empty SERVER_INCLUDE, or by
+# ensuring that no include files exist in the aforementioned search list.
+# Be aware that you will be entirely responsible for populating the needed
+# environment variables.
+
+CDPATH=""
+SCRIPT="$0"
+
+# SCRIPT may be an arbitrarily deep series of symlinks. Loop until we have the concrete path.
+while [ -h "$SCRIPT" ] ; do
+  ls=`ls -ld "$SCRIPT"`
+  # Drop everything prior to ->
+  link=`expr "$ls" : '.*-> \(.*\)$'`
+  if expr "$link" : '/.*' > /dev/null; then
+    SCRIPT="$link"
+  else
+    SCRIPT=`dirname "$SCRIPT"`/"$link"
+  fi
+done
+
+# determine server home
+SERVER_HOME=`dirname "$SCRIPT"`/..
+SERVER_NAME=qdp
+SERVER_MAIN=org.springframework.boot.loader.WarLauncher
+JAVA_OPTS="-Dspring.config.location=$SERVER_HOME/conf/application.properties"
+
+# make HOME absolute
+SERVER_HOME=`cd "$SERVER_HOME"; pwd`
+
+# for springboot change xml file place
+sedArg=""
+if [ "`uname`" = "Darwin" ]; then
+	sedArg="''"
+fi
+sed -i $sedArg 's@classpath:META-INF@file:${server.path.home}/conf@g' conf/application.properties
+sed -i $sedArg 's@classpath:META-INF@file:${server.path.home}/conf@g' conf/spring/root.xml
+sed -i $sedArg 's@file:${server.path.home}/conf/spring-tcutil/tc-util.xml@classpath:META-INF/spring-tcutil/tc-util.xml@g' conf/spring/root.xml
+sed -i $sedArg 's@classpath\*:META-INF@file:${server.path.home}/conf@g' conf/spring-cxf/webservice-cxf.xml
+
+
+# If an include wasn't specified in the environment, then search for one...
+if [ "x$SERVER_INCLUDE" = "x" ]; then
+    # Locations (in order) to use when searching for an include file.
+    for include in /usr/share/$SERVER_NAME/setenv.sh \
+                   /usr/local/share/$SERVER_NAME/setenv.sh \
+                   /opt/$SERVER_NAME/setenv.sh \
+                   ~/.setenv.sh \
+                   "`dirname "$0"`"/setenv.sh; do
+        if [ -r "$include" ]; then
+            . "$include"
+            break
+        fi
+    done
+# ...otherwise, source the specified include.
+elif [ -r "$SERVER_INCLUDE" ]; then
+    . "$SERVER_INCLUDE"
+fi
+
+if [ -x "$JAVA_HOME/bin/java" ]; then
+    JAVA="$JAVA_HOME/bin/java"
+else
+    JAVA=`which java`
+fi
+
+if [ ! -x "$JAVA" ]; then
+    echo "Could not find any executable java binary. Please install java in your PATH or set JAVA_HOME"
+    exit 1
+fi
+
+if [ -z "$SERVER_CLASSPATH" ]; then
+    echo "You must set the SERVER_CLASSPATH var" >&2
+    exit 1
+fi
+
+# Special-case path variables.
+case `uname` in
+    CYGWIN*)
+        SERVER_CLASSPATH=`cygpath -p -w "$SERVER_CLASSPATH"`
+        SERVER_HOME=`cygpath -p -w "$SERVER_HOME"`
+    ;;
+esac
+
+launch_service()
+{
+    pidpath=$1
+    daemonized=$2
+    props=$3
+    server_parms="-D$SERVER_NAME"
+
+    if [ "x$pidpath" != "x" ]; then
+        server_parms="$server_parms -Dserver.pidfile=$pidpath"
+    fi
+
+    # The server-foreground option will tell server not to close stdout/stderr, but it's up to us not to daemonize.
+    if [ "x$daemonized" = "x" ]; then
+        server_parms="$server_parms -Dserver.foreground=yes"
+        echo "$JAVA $JAVA_OPTS $JVM_JAVA_OPTS $server_parms -Dserver.path.home=$SERVER_HOME -cp $SERVER_CLASSPATH $SERVER_MAIN $props"
+        exec "$JAVA" $JAVA_OPTS $JVM_JAVA_OPTS $server_parms -Dserver.path.home="$SERVER_HOME" -cp $SERVER_CLASSPATH $SERVER_MAIN $props
+        # exec without running it in the background, makes it replace this shell, we'll never get here...
+        # no need to return something
+    else
+        # Startup server, background it, and write the pid.
+        echo "$JAVA $JAVA_OPTS $JVM_JAVA_OPTS $server_parms -Dserver.path.home=$SERVER_HOME -cp $SERVER_CLASSPATH $SERVER_MAIN $props"
+        exec "$JAVA" $JAVA_OPTS $JVM_JAVA_OPTS $server_parms -Dserver.path.home="$SERVER_HOME" -cp $SERVER_CLASSPATH $SERVER_MAIN $props <&- &
+        return $?
+    fi
+}
+
+# Parse any long getopt options and put them into properties before calling getopt below
+# Be dash compatible to make sure running under ubuntu works
+ARGV=""
+while [ $# -gt 0 ]
+do
+    case $1 in
+      ## --*=*) properties="$properties -Dserver.${1#--}"
+      --*=*) properties="$properties $1"
+           shift 1
+           ;;
+      ## --*) properties="$properties -Dserver.${1#--}=$2"
+      --*) properties="$properties $1=$2"
+           shift 2
+           ;;
+      *) ARGV="$ARGV $1" ; shift
+    esac
+done
+
+# Parse any command line options.
+args=`getopt vdhp:D:X: $ARGV`
+eval set -- "$args"
+
+while true; do
+    case $1 in
+        -v)
+            ##"$JAVA" $JAVA_OPTS $JVM_JAVA_OPTS $server_parms -Dserver.path.home="$SERVER_HOME" -cp "$SERVER_CLASSPATH" $props qdp
+			echo "qdp 4.0.0"
+            exit 0
+        ;;
+        -p)
+            pidfile="$2"
+            shift 2
+        ;;
+        -d)
+            daemonized="yes"
+            shift
+        ;;
+        -h)
+            echo "Usage: $0 [-d] [-h] [-p pidfile]"
+            exit 0
+        ;;
+        -D)
+            properties="$properties -D$2"
+            shift 2
+        ;;
+        -X)
+            properties="$properties -X$2"
+            shift 2
+        ;;
+        --)
+            shift
+            break
+        ;;
+        *)
+            echo "Error parsing argument $1!" >&2
+            exit 1
+        ;;
+    esac
+done
+
+# Start up the service
+launch_service "$pidfile" "$daemonized" "$properties"
+
+exit $?

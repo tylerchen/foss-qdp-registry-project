@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="x-ua-compatible" content="IE=9">
+<meta charset="utf-8">
+<title>iview example</title>
+<script type="text/javascript">
+	var host = window.location.host, href = window.location.href, page = "/resource/pages/index.html";
+	var ctx = href.substring(href.indexOf(host)+host.length, href.indexOf(page))||"/";
+	ctx = ctx.length == 1 ? '' : ctx;
+</script>
+<!--[if lte IE 9]>
+<script src="../modules/hack/IE9.js" type="text/javascript"></script>
+<script src="../modules/hack/placeholders.min.js" type="text/javascript"></script>
+<script src="../modules/hack/ieBetter.js" type="text/javascript"></script>
+<![endif]-->
+<script data-main="../modules/elementui/requirejs-config.js" src="../modules/requirejs/require.js"></script>
+</head>
+<body>
+	<div id="app">
+		<router-view></router-view>
+	</div>
+</body>
+</html>

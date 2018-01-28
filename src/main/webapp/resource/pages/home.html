@@ -1,0 +1,171 @@
+<template>
+    <div class="qdp-head-bmenu-footer-layout">
+        <el-row class="qdp-header" type="flex" justify="start" align="middle">
+            <el-col class="qdp-header-start" :span="4"><div class="qdp-logo">QDP</div></el-col>
+            <el-col class="qdp-header-center" :span="14"></el-col>
+            <el-col class="qdp-header-end" :span="6">
+            	<el-row type="flex" justify="end" align="middle" style="padding-right: 10px">
+           			<el-button type="text">{{(account()||{}).loginId}}</el-button>
+           			<el-button type="text" @click="loginOut">登出</el-button>
+            	</el-row>
+            </el-col>
+        </el-row>
+        <el-row class="qdp-content" type="flex" justify="start" align="top">
+            <el-col class="qdp-content-start" :span="menuFold?1:4">
+            	<el-button type="text" class="qdp-fold" title="折叠" @click="onPost('menu-action','fold')" style="top:0;position: relative;float: right;z-index: 1;width:10px;"><i class="el-icon-ion-android-more-vertical"></i></el-button>
+                <el-menu v-if="!menuFold" class="qdp-el-vmenu" theme="dark" :router="true" @select="onPost.call(this, 'menu-select', arguments[0], arguments[1])" :default-openeds="menus.opens" :default-active="menus.active">
+                    <template v-for="(item, key) in menus.items">
+                        <el-submenu v-if="item.items" :index="item.id" :key="item.id"> <span slot="title"><i :class="qdpIcon(menus, item)"></i>{{qdpTitle(menus,item)}}</span>
+                            <template v-for="(sitem, skey) in item.items">
+		                        <el-submenu v-if="sitem.items" :index="sitem.id" :key="sitem.id"> <span slot="title"><i :class="qdpIcon(menus, sitem)"></i>{{qdpTitle(menus,sitem)}}</span>
+		                            <el-menu-item v-for="(ssitem, sskey) in sitem.items" :key="ssitem.id" :index="qdpUrl(menus, ssitem)"> <i :class="qdpIcon(menus, ssitem)"></i>{{qdpTitle(menus, ssitem)}}</el-menu-item>
+		                        </el-submenu>
+		                        <el-menu-item v-if="!sitem.items" :index="sitem.id">
+		                            <i :class="qdpIcon(menus, sitem)"></i>{{qdpTitle(menus, sitem)}}</el-menu-item>
+		                    </template>
+                        </el-submenu>
+                        <el-menu-item v-if="!item.items" :index="item.id">
+                            <i :class="qdpIcon(menus, item)"></i>{{qdpTitle(menus, item)}}</el-menu-item>
+                    </template>
+                </el-menu>
+                <div v-if="menuFold" class="qdp-menu-fold">
+                	<el-collapse v-for="(item, key) in menus.items" :key="item">
+                		<el-collapse-item>
+                			<template slot="title"><i :class="qdpIcon(menus, item)" :title="qdpTitle(menus, item)"></i></template><!-- level 1 -->
+	                		<el-collapse v-if="item.items" v-for="(sitem, skey) in item.items" :key="sitem">
+	                			<el-collapse-item>
+	                				<template slot="title"><i :class="qdpIcon(menus, sitem)" :title="qdpTitle(menus, sitem)"></i></template><!-- level 2 -->
+	                				<div v-for="(ssitem, sskey) in sitem.items" :key="ssitem" class="qdp-menu-fold--leaf">
+	                					<el-button size="mini" type="text" @click="goToUrl(qdpUrl(menus, ssitem))" :title="qdpTitle(menus, ssitem)"><i :class="qdpIcon(menus, ssitem)"></i></el-button><!-- level 3 -->
+	                				</div>
+	                			</el-collapse-item>
+	                		</el-collapse>
+                		</el-collapse-item>
+                	</el-collapse>
+                </div>
+            </el-col>
+            <el-col class="qdp-content-end" :span="menuFold?23:20"><router-view></router-view></el-col>
+        </el-row>
+        <el-row class="qdp-footer" type="flex" justify="center" align="top">
+            <div>2017-2019 &copy; Forever Open Source & Forever Flying {{app_version}}</div>
+        </el-row>
+    </div>
+</template>
+<script type="text/javascript">
+define(['vue'], function(Vue) {
+    return {
+        template: template, //
+        components : {
+		},
+        data: function() {
+            return {
+            	app_version: app_version||'',
+            	logoutUrl: ctx + '/system/logout.do',
+            	menuFold: false,
+            	activeCollapse: '',
+                menus: {
+                	urlField: 'resourceIdCode',
+                	opens:[],
+                	active:'',
+                    items: {}
+                }
+            };
+        }, //
+        created: function() {
+            this.loadMenu();
+        }, //
+        methods: {
+        	account: getters.account,//
+            accountId: getters.accountId, //
+            qdpUrl: function(config, value){
+            	var url = qdpUrl(config, value);
+				url = "/home" + url;
+				return url;
+            },
+            qdpTitle: qdpTitle,
+            qdpLabel: qdpLabel,
+            qdpIcon: function(config, value) {
+                return qdpIcon(config, value) || 'el-icon-ion-android-menu';
+            },
+            qdpSubItem: qdpSubItem,
+            qdpIsArray: qdpIsArray, //
+            goToUrl: function(url){
+            	url && Router.push(url);
+            },
+            loadMenu: function() {
+                LOG("FN: home.loadMenu")
+                var root = this;
+                var baseUrl = "/ws/json/authorizationApplication/pageFindAuthMenuByAccountIdMap/arg0="+root.accountId();
+                var query = qdpObj({}, 'vo', {}, 'page', qdpObj({}, 'pageSize', 1000, 'currentPage', 1, 'orderBy', []));
+                var url = qdpFormatUrl(ctx + baseUrl, query);
+                LOG("=====url=====>" + url);
+                root.$http.get(url).then(
+                    function(data) {
+                    	var all = qdpAjaxDataBody(data) || [], arr = qdpIsArray(all) ? all : (all.rows || []);//要考虑返回是一个Page对象的情况
+                        var menus = {}, menuItems = {}, urlHash=window.location.hash||'#', active, open=[];
+                        qdpMap(arr, function(value) {
+                            menuItems[value.id] = value;
+                            var url = root.qdpUrl(root.menus, value);
+                            if(url && urlHash.indexOf(url)==1){
+                            	active=value;
+                            }
+                        });
+                        qdpMap(menuItems, function(value) { //setup menu level
+                            if (value.parentId) {
+                                menuItems[value.parentId] && (menuItems[value.parentId].items = menuItems[value.parentId].items || {}) && (menuItems[value.parentId].items[value.id] = value);
+                            } else {
+                                menus[value.id] = value;
+                                open.push(value.id);
+                            }
+                        });
+                        if(active){
+                        	Vue.set(root.menus, 'active', root.qdpUrl(root.menus, active));
+                        	var parent = menuItems[active.parentId], counter=5;
+                        	while(parent&&open.indexOf(parent.id)<0&&counter-->0){
+                        		open.push(parent.id);
+                        		active = parent;
+                        		parent = menuItems[active.parentId];
+                        	}
+                        }
+                        Vue.set(root.menus, 'opens', open);
+                        Vue.set(root.menus, 'items', menus);
+                    },
+                    function(response) {
+                        root.$notify({
+                            title: 'Load Menu=>Error',
+                            desc: qdpToString(response),
+                            duration: 0
+                        });
+                    });
+            }, //
+            loginOut: function() {
+                var root = this,
+                    url = root.logoutUrl,
+                    data = {};
+                root.$http.post(url, data).then(function(data) {
+                        root.$message.info("登出成功");
+                        sessionStorage.clear();
+                        Router.push("/login");
+                    },
+                    function(response) {
+                        root.$notify({ title: 'Http Post=>Error', desc: url + '\n<br/>' + qdpToString(response), duration: 0 });
+                        root.$message.info("登出成功");
+                        sessionStorage.clear();
+                        Router.push("/login");
+                    });
+            },
+            onPost: function(eventType, arg0, arg1, arg2, arg3) {
+                LOG("EV: home.onPost." + eventType);
+                LOG("MENU:"+arg0);
+                var root=this;
+                if('menu-action'==eventType){
+                	var action = arg0;
+                	if('fold'==action){
+                		root.menuFold = !root.menuFold;
+                	}
+                }
+            }
+        }
+    };
+});
+</script>

@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	http://www.springframework.org/schema/beans/spring-beans-3.2.xsd  
+    http://www.springframework.org/schema/util 
+    http://www.springframework.org/schema/util/spring-util-3.2.xsd">
+
+	<description><![CDATA[Shiro 配置: http://www.sojson.com/blog/199.html]]></description>
+
+	<bean id="shiroFilter" class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">
+		<property name="securityManager" ref="securityManager" />
+		<property name="loginUrl" value="/login.html" />
+		<property name="successUrl" value="/index.html" />
+		<property name="unauthorizedUrl" value="/error/noperms.html" />
+		<!-- shiro连接约束配置 -->
+		<!-- 其实这个问题的真正原因是定义了多个filter与shirofilter 一同被spring-boot 识别,加入了filterChain. 
+			相当于myFilter与shiroFilter不再是上下级的关系,而是平级的关系,由spring ApplicationFilterConfig 
+			一起管理了. -->
+		<property name="filters">
+			<map>
+				<entry key="accctl">
+					<bean class="com.foreveross.common.shiro.ShiroAccessControlFilter" />
+				</entry>
+				<entry key="accip">
+					<bean class="com.foreveross.common.shiro.ShiroIpAccessControlFilter" />
+				</entry>
+				<entry key="acczuul">
+					<bean class="com.foreveross.common.shiro.ShiroZuulAccessControlFilter" />
+				</entry>
+				<entry key="accauth">
+					<bean class="com.foreveross.common.shiro.ShiroAuthAccessControlFilter" />
+				</entry>
+				<entry key="traceid">
+					<bean class="com.foreveross.common.shiro.ShiroTraceIdFilter" />
+				</entry>
+			</map>
+		</property>
+		<property name="filterChainDefinitions">
+			<value>
+				/resource/** = anon
+				/system/** = anon
+				/anonws/** = anon
+				/health/** = anon
+				/rpc/http/** = traceid,acczuul,accip
+				/juneau/** = traceid,accctl
+				/ws/** = traceid,accctl
+				/** = traceid,accctl
+			</value>
+		</property>
+	</bean>
+
+	<bean id="shiroCacheManager" class="org.apache.shiro.cache.ehcache.EhCacheManager">
+		<property name="cacheManager" ref="cacheManager" />
+		<!-- shiro-activeSessionCache <property name="cacheManagerConfigFile" value="classpath:ehcache.xml" 
+			/> -->
+	</bean>
+
+	<!-- 安全管理器 -->
+	<bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+		<!--设置自定义realm -->
+		<property name="realm" ref="monitorRealm" />
+		<!-- 基于ehCache来缓存用户认证信息和授权信息的实现 -->
+		<property name="cacheManager" ref="shiroCacheManager" />
+		<!-- 配置sessionListener -->
+		<property name="sessionManager" ref="sessionManager" />
+	</bean>
+	<!-- 自定义session监听器 -->
+	<bean id="sessionManager"
+		class="org.apache.shiro.web.session.mgt.DefaultWebSessionManager">
+		<property name="sessionListeners" ref="shiroSessionListener" />
+	</bean>
+	<bean id="shiroSessionListener" class="com.foreveross.common.shiro.ShiroSessionListener"></bean>
+
+	<bean id="lifecycleBeanPostProcessor" class="org.apache.shiro.spring.LifecycleBeanPostProcessor" />
+
+	<!--自定义Realm 继承自AuthorizingRealm -->
+	<bean id="monitorRealm" class="com.foreveross.common.shiro.MonitorRealm"></bean>
+
+	<bean
+		class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+		<property name="staticMethod"
+			value="org.apache.shiro.SecurityUtils.setSecurityManager" />
+		<property name="arguments" ref="securityManager" />
+	</bean>
+
+	<!-- Enable Shiro Annotations for Spring-configured beans. Only run after -->
+	<!-- the lifecycleBeanProcessor has run: -->
+	<bean
+		class="org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator"
+		depends-on="lifecycleBeanPostProcessor" />
+	<bean
+		class="org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor">
+		<property name="securityManager" ref="securityManager" />
+	</bean>
+</beans>

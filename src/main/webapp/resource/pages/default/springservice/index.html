@@ -1,0 +1,516 @@
+<template>
+	<div class="qdp-list-layout">
+		<!-- 搜索 -->
+		<!-- 搜索-END -->
+		<!-- 操作栏 -->
+		<!-- 操作栏-END- -->
+		<!-- 列表 -->
+		<el-row class="qdp-list-content qdp-grid" type="flex" justify="start" align="top">
+			<el-collapse>
+				<el-collapse-item v-for="(methods, key) in grid.data.rows" :key="methods">
+					<template slot="title">{{key}}</template>
+					<div class="el-transfer-panel__item el-table__row" v-for="method in methods" :key="method">
+						{{method}}
+					</div>
+				</el-collapse-item>
+			</el-collapse>
+		</el-row>
+		<!-- 列表-END -->
+		<!-- 分页 -->
+		<!-- 分页-END -->
+		<!-- 添加 -->
+		<!-- 添加-END -->
+		<!-- 修改 -->
+		<!-- 修改-END -->
+		<!-- 详情 -->
+		<!-- 详情-END -->
+	</div>
+</template>
+<script type="text/javascript">
+	define([ 'vue'], function(Vue) {
+		return {
+			template : template, //
+			components : {
+				
+			},
+			data : function() {
+				return {
+					//===
+					hotKey : {
+					},
+					searchForm : {
+						id : '', name : '', dataSource : '', queryContent : '', type1 : '', type2 : '', description : '', updateTime : '', createTime : ''
+					},
+					enums : {},
+					grid : {
+						url : '/ws/json/monitorApplication/findSpringService',
+						query : qdpObj({}, 'vo', {}, 'page', qdpObj({}, 'pageSize', 10, 'currentPage', 1, 'orderBy', [])), oneSelection : null,
+						multiSelection : [], data : {
+							currentPage : 1, totalCount : 0, pageSize : 5, rows : []
+						}
+					}
+				};
+			}, //
+			created : function() {
+				this.loadGrid();
+			}, //
+			mounted : function() {
+				//快捷键
+			},//
+			beforeDestroy : function() {
+				//快捷键
+			},//
+			methods : {
+				cache : getters.cache,//
+				accountId : getters.accountId, 
+				// 加载Grid
+				loadGrid : function() {
+					var root = this, grid = root.grid;
+					var query = grid.query, url = grid.url, params = params || {}, prefix="";
+					query.page && params.orderBy && (query.page.orderBy = params.orderBy);
+					query.page && qdpIsNumber(params.pageSize) && (query.page.pageSize = params.pageSize || 1) && (query.page.currentPage = 1);
+					query.page && qdpIsNumber(params.currentPage) && (query.page.currentPage = params.currentPage);
+					query = qdpCombine(root.queryContext(), query);
+					qdpMap(root.queryContext(), function(value, key){//把当前上下文参数传给VO
+						(query.vo||{})[key] = value;
+					});
+					url = qdpFormatUrl(ctx + url, query);
+					LOG("FN: Grid.grid-load-data.url=" + url);
+					root.$http.get(url).then(function(data) {
+						Vue.set(grid.data, 'rows', qdpIsSuccess(data) ? qdpAjaxDataBody(data) : []);
+					}, function(response) {
+						root.$notify({
+							title : 'Http=>Error', desc : response.url + '\n<br/>' + qdpToString(response), duration : 0
+						});
+					});
+				},
+				// 返回选择项的值
+				getOption : function(data, field) {
+					var fieldName = field.property || field, enums = ((this.enums || {}).index||{})[fieldName] || {};
+					var value = data[fieldName];
+					var option = enums[value == null ? '' : value];
+					return option == null ? (value == null ? '' : value) : option;
+				},
+				// 返回选择数据的值
+				getSelectionLabel : function(formName, field, labelField) {
+					var form = this[formName], names = [], ids = [], datas = form[field + 'Selections'];
+					qdpMap(datas, function(value) {
+						names.push(value[labelField]);
+						ids.push(value.id);
+					});
+					form[field + 'Name'] = names.join(',');
+					form[field] = ids.join(',');
+					return;
+				},
+				// 重置选择数据的值
+				resetSelectionLabel : function(formName, field) {
+					var ref = this.$refs[formName + '-' + field], ref2 = this.$refs[formName + '-' + field + 'Name'];
+					ref && ref.resetField();
+					ref2 && ref2.resetField();
+					this[formName][field + 'Selections'] = [];
+				},
+				// 分割字符串，预防空值
+				split : function(value, fieldName) {
+					return ((value||{})[fieldName]||',').split(',');
+				},
+				// 删除选择项
+				removeSelect : function(form, field, value) {
+					var root = this, names = root.split(form, field+'Name'), ids = root.split(form, field);
+					var index = names.indexOf(value);
+					if(index > -1 && names.length == ids.length){
+						names.splice(index,1), ids.splice(index,1);
+						form[field+'Name']=names.join(','), form[field]=ids.join(',');
+					}
+				},
+				// 重置选择数据的值
+				resetSelectionLabel : function(formName, field) {
+					var ref = this.$refs[formName + '-' + field], ref2 = this.$refs[formName + '-' + field + 'Name'];
+					ref && ref.resetField();
+					ref2 && ref2.resetField();
+					this[formName][field + 'Selections'] = [];
+				},
+				// 热键，默认就是Ctrl+其他键
+				onHotKey : function(event) {
+					var root = this;
+					if (event.type == "keyup") {
+						root.hotKey.controlKey = null;
+						return;
+					}
+					if (event.type != "keydown") {
+						return;
+					}
+					// 获取键值, Ctrl=17, Alt=18, Shit=16, Command=224
+					var keyCode = event.keyCode;
+					if (keyCode == 17) {
+						root.hotKey.controlKey = 17;
+						return;
+					}
+					var keyValue = String.fromCharCode(event.keyCode).toLowerCase();
+					if (root.hotKey.controlKey < 1) {
+						return;
+					}
+					var map = root.hotKey.keyAction, value = map[keyValue];
+					if (!value) {
+						return;
+					}
+					LOG("FN: onHotKey.Ctrl+" + keyValue);
+					event.stopPropagation(), event.preventDefault(); // 阻止事件冒泡 // 阻止该元素默认的keyup事件
+					root.onPost('action-bar', value);
+				},
+				// 打开弹窗
+				openDialog : function(formName, field) {
+					var root = this;
+					root.currentFormName = formName, root[field + 'Visible'] = true;
+				},
+				// 查询上下文
+				queryContext : function(value) {
+					var qc = qdpSGetItem('queryContext', {});
+					if (value === null || value != null) {
+						qc.sysqueryId = value;
+						qdpSSetItem('queryContext', qc);
+					}
+					return qc;
+				},
+				// 清除表单多余项
+				clearForm : function(formJson) {
+					var keys = [];
+					qdpMap(formJson, function(value, key) {
+						if (((key + 'Selections') in formJson) && (key + 'Name') in formJson) {
+							keys.push(key + 'Selections');
+							keys.push(key + 'Name');
+						}
+					});
+					qdpMap(keys, function(value, key) {
+						delete formJson[value];
+					});
+					return formJson;
+				},
+				//
+				onPost : function(eventType, arg0, arg1, arg2, arg3) {
+					LOG("EV: onPost." + eventType);
+					var root = this;
+					if ("searchForm" == eventType) {
+						LOG("searchForm:" + arg0);
+						var action = arg0;
+						if ('reset' == arg0) {
+							root.$refs.searchForm.resetFields();
+							qdpMap(root.searchForm, function(value, key) {
+								root.grid.query.vo[key] = value;
+							});
+						}
+						if ('search' == arg0) {
+							qdpMap(root.searchForm, function(value, key) {
+								root.grid.query.vo[key] = value;
+							});
+						}
+						root.loadGrid();
+					}
+					if ("action-bar" == eventType) {
+						LOG("action-bar:" + arg0);
+						var action = arg0;
+						if ('back' == action) {
+							Router.go(-1);
+							return;
+						}
+						if ('refresh' == action) {
+							root.loadGrid();
+							return;
+						}
+						if ('add' == action) {
+							root.addFormVisible = true;
+							return;
+						}
+						if ('edit' == action) {
+							if (root.grid.oneSelection == null) {
+								root.$message.info("请选择数据!");
+								return;
+							}
+							root.editForm = qdpCombine({
+								
+							}, root.grid.oneSelection);
+							//加载当前关联数据
+							qdpMap(root.editForm, function(value, field) {
+								var loadData = root[field + 'LoadData'];
+								if (!loadData) {
+									return;
+								}
+								var url = loadData.url, query = qdpCombine(root.queryContext(), loadData.query), prefix="sysquery";
+								qdpMap(root.queryContext(), function(value, key){//把当前上下文参数传给VO
+									if(key.indexOf(prefix) == 0){
+										var newKey = key.substring(prefix.length);
+										newKey = newKey.substring(0, 1).toLowerCase() + newKey.substring(1);
+										(query.vo||{})[newKey] = value;
+									}else{
+										(query.vo||{})[key] = value;
+									}
+								});
+								var processor = typeof (loadData.callback) == 'function' ? loadData.callback : noop;
+								url = qdpFormatUrl(ctx + url, query);
+								LOG("FN: edit-load-data.url=" + url);
+								root.$http.get(url).then(function(data) {
+									processor.call(root, qdpAjaxDataBody(data), null, 'editForm');
+								}, function(response) {
+									root.$notify({
+										title : 'Http=>Error', desc : response.url + '\n<br/>' + qdpToString(response), duration : 0
+									});
+									processor.call(root, null, null, 'editForm');
+								});
+							});
+							root.editFormVisible = true;
+							root.queryContext.sysqueryId = root.grid.oneSelection.id;
+							return;
+						}
+						if ('delete' == action) {
+							root.onPost('deleteForm');
+							return;
+						}
+						if ('info' == action) {
+							if (root.grid.oneSelection == null) {
+								root.$message.info("请选择数据!");
+								return;
+							}
+							root.infoForm = qdpJsonCopy(root.grid.oneSelection);
+							root.infoFormVisible = true;
+							return;
+						}
+						if (root[action + 'Visible'] != null) {
+							if (root.grid.oneSelection == null) {
+								root.$message.info("请选择数据!");
+								return;
+							}
+							root[action + 'Form'] = qdpCombine(root[action + 'Form'], root.grid.oneSelection);
+							root.currentFormName = action + 'Form', root[action + 'Visible'] = true;
+							root.queryContext.sysqueryId = root.grid.oneSelection.id;
+							return;
+						}
+					}
+					if ('grid-page' == eventType) {
+						LOG("grid-page:" + arg0);
+						var action = arg0;
+						if ('size-change' == action) {
+							var pageSize = arg1;
+							root.grid.query.page.pageSize = pageSize > 0 ? pageSize : 10;
+						}
+						if ('current-change' == action) {
+							var currentPage = arg1;
+							root.grid.query.page.currentPage = currentPage > 0 ? currentPage : 1;
+						}
+						root.loadGrid();
+					}
+					if ('grid-table' == eventType) {
+						LOG("grid-table:" + arg0);
+						var action = arg0;
+						if ('selection-change' == action) {
+							var rows = arg1, grid = root.grid, $grid = root.$refs.grid;
+							if (rows.length == 1) {
+								grid.oneSelection = rows[0];
+								$grid.setCurrentRow(rows[0]);
+								root.queryContext(qdpId(root, rows[0]));
+							}
+							Vue.set(grid, 'multiSelection', rows);
+						}
+						if ('row-click' == action) {
+							var row = arg1, event = arg2, column = arg3, grid = root.grid, $grid = root.$refs.grid;
+							if (grid.oneSelection == row) {
+								$grid.setCurrentRow();
+								grid.oneSelection = null;
+								root.queryContext(null);
+							} else {
+								grid.oneSelection = row;
+								$grid.setCurrentRow(row);
+								root.queryContext(qdpId(root, row));
+							}
+						}
+						if ('sort-change' == action) {
+							var columnPropOrder = arg1, column = arg1.column, prop = arg1.prop, order = arg1.order;//[descending,ascending,null]
+							var orderMap = qdpObj({}, 'descending', 'desc', 'ascending', 'asc', '-', '');
+							root.grid.query.page.orderBy[0] = qdpObj({}, 'name', prop, 'order', orderMap[order || '-']);
+							root.loadGrid();
+						}
+					}
+					if ('addForm' == eventType) {
+						LOG("addForm:" + arg0);
+						var action = arg0, $addForm = root.$refs.addForm, addForm = root.addForm;
+						if ('reset' == action) {
+							$addForm.resetFields();
+						}
+						if ('submit' == action) {
+							var contextCondition = {}, formData, url;
+							var success = function(data) {
+								if (qdpIsSuccess(data)) {
+									root.$message.success('成功');
+									root.addFormVisible = false;
+									root.loadGrid();
+									$addForm.resetFields();
+								} else {
+									root.$notify({
+										title : 'Form Post=>Error', message : url + '\n<br/>' + qdpToString(qdpAjaxData(data)), duration : 0, type : 'error'
+									});
+								}
+							};
+							var error = function(response) {
+								root.$notify({
+									title : 'Http=>Error', desc : response.url + '\n<br/>' + qdpToString(response), duration : 0
+								});
+							};
+							var valid = function(valid) {
+								if (!valid) {
+									return;
+								}
+								root.$http.post(url, formData).then(success, error);
+							};
+							var then = function() {
+								formData = qdpJsonForm({arg0 : root.clearForm(qdpJsonCopy(addForm))});
+								//submit form
+								url = qdpFormatUrl(ctx + root.addFormUrl, contextCondition);
+								LOG("FN: addForm.url=" + url);
+								$addForm.validate(valid);
+							};
+							var confirm = {
+								confirmButtonText : '确定', cancelButtonText : '取消', type : 'warning'
+							};
+							root.$confirm('提交表单', '提示', confirm).then(then)['catch'](noop);
+						}
+						return;
+					}
+					if ('editForm' == eventType) {
+						LOG("editForm:" + arg0);
+						var action = arg0, $editForm = root.$refs.editForm, editForm = root.editForm;
+						if ('reset' == action) {
+							$editForm.resetFields();
+						}
+						if ('submit' == action) {
+							var contextCondition = {}, formData, url;
+							var success = function(data) {
+								if (qdpIsSuccess(data)) {
+									root.$message.success('成功');
+									$editForm.resetFields();
+									root.editFormVisible = false;
+									root.loadGrid();
+								} else {
+									root.$notify({
+										title : 'Form Post=>Error', message : url + '\n<br/>' + qdpToString(qdpAjaxData(data)), duration : 0, type : 'error'
+									});
+								}
+							};
+							var error = function(response) {
+								root.$notify({
+									title : 'Http=>Error', desc : response.url + '\n<br/>' + qdpToString(response), duration : 0
+								});
+							};
+							var valid = function(valid) {
+								if (!valid) {
+									return;
+								}
+								root.$http.post(url, formData).then(success, error);
+							};
+							var then = function() {
+								formData = qdpJsonForm({arg0 : root.clearForm(qdpJsonCopy(editForm))});
+								//submit form
+								url = qdpFormatUrl(ctx + root.editFormUrl, contextCondition);
+								LOG("FN: editForm.url=" + url);
+								$editForm.validate(valid);
+							};
+							var confirm = {
+								confirmButtonText : '确定', cancelButtonText : '取消', type : 'warning'
+							};
+							root.$confirm('提交表单', '提示', confirm).then(then)['catch'](noop);
+						}
+						return;
+					}//editForm-END
+					if ('deleteForm' == eventType) {
+						LOG("deleteForm:" + arg0);
+						var action = arg0, deleteForm = root.grid.multiSelection;
+						var contextCondition = {}, formData, url, messages;
+						{
+							formData = [], messages = [];
+							if (deleteForm && deleteForm.length < 1) {
+								root.$message.info("请选择数据!");
+								return;
+							}
+							qdpMap(deleteForm, function(value) {
+								formData.push(qdpId(root, value));
+								messages.push(qdpLabel(root, value));
+							});
+						}
+						var success = function(data) {
+							if (qdpIsSuccess(data)) {
+								root.$message.success('成功');
+								root.loadGrid();
+							} else {
+								root.$notify({
+									title : 'Form Post=>Error', message : url + '\n<br/>' + qdpToString(qdpAjaxData(data)), duration : 0, type : 'error'
+								});
+							}
+						};
+						var error = function(response) {
+							root.$notify({
+								title : 'Http=>Error', desc : response.url + '\n<br/>' + qdpToString(response), duration : 0
+							});
+						};
+						var then = function() {
+							//submit form
+							url = qdpFormatUrl(ctx + root.deleteFormUrl, contextCondition);
+							LOG("FN: deleteForm.url=" + url);
+							root.$http.post(url, {
+								arg0 : formData.join(',')
+							}).then(success, error);
+						};
+						var confirm = {
+							confirmButtonText : '确定', cancelButtonText : '取消', type : 'warning'
+						};
+						root.$confirm('确定删除：' + messages.join(','), '提示', confirm).then(then)['catch'](noop);
+						return;
+					}//deleteForm-END
+					if (eventType.endsWith('Form')) {
+						LOG(eventType + ":" + arg0);
+						var action = arg0, $form = root.$refs[eventType], form = root[eventType], actionBarName = eventType.substring(0, eventType
+								.indexOf('Form'));
+						if ('reset' == action) {
+							$form.resetFields();
+						}
+						if ('submit' == action) {
+							var contextCondition = {}, formData, url;
+							var success = function(data) {
+								if (qdpIsSuccess(data)) {
+									root.$message.success('成功');
+									root[actionBarName + 'Visible'] = false;
+									root.loadGrid();
+									$form.resetFields();
+								} else {
+									root.$notify({
+										title : 'Form Post=>Error', message : url + '\n<br/>' + qdpToString(qdpAjaxData(data)), duration : 0, type : 'error'
+									});
+								}
+							};
+							var error = function(response) {
+								root.$notify({
+									title : 'Http=>Error', desc : response.url + '\n<br/>' + qdpToString(response), duration : 0
+								});
+							};
+							var valid = function(valid) {
+								if (!valid) {
+									return;
+								}
+								root.$http.post(url, formData).then(success, error);
+							};
+							var then = function() {
+								formData = qdpJsonForm({arg0 : root.clearForm(qdpJsonCopy(form))});
+								//submit form
+								url = qdpFormatUrl(ctx + root[eventType + 'Url'], contextCondition);
+								LOG("FN: form.url=" + url);
+								$form.validate(valid);
+							};
+							var confirm = {
+								confirmButtonText : '确定', cancelButtonText : '取消', type : 'warning'
+							};
+							root.$confirm('提交表单', '提示', confirm).then(then)['catch'](noop);
+						}
+						return;
+					}//*Form-END
+				}
+			}
+		};
+	});
+</script>
+

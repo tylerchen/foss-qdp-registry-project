@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata modelVersion="1.1.0">
+  <groupId>com.octo.captcha</groupId>
+  <artifactId>jcaptcha</artifactId>
+  <version>2.0-alpha-1-SNAPSHOT</version>
+  <versioning>
+    <snapshot>
+      <localCopy>true</localCopy>
+    </snapshot>
+    <lastUpdated>20160810121131</lastUpdated>
+    <snapshotVersions>
+      <snapshotVersion>
+        <extension>jar</extension>
+        <value>2.0-alpha-1-SNAPSHOT</value>
+        <updated>20160810121131</updated>
+      </snapshotVersion>
+      <snapshotVersion>
+        <extension>pom</extension>
+        <value>2.0-alpha-1-SNAPSHOT</value>
+        <updated>20160810121131</updated>
+      </snapshotVersion>
+    </snapshotVersions>
+  </versioning>
+</metadata>

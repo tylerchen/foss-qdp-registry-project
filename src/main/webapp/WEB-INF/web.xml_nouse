@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://java.sun.com/xml/ns/javaee" xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+	id="foss-qdp-web" version="2.5" metadata-complete="true">
+	<display-name>foss-qdp-web</display-name>
+
+	<welcome-file-list>
+		<welcome-file>index.htm</welcome-file>
+		<welcome-file>index.jsp</welcome-file>
+		<welcome-file>index.html</welcome-file>
+	</welcome-file-list>
+
+	<!-- Spring 刷新Introspector防止内存泄露 -->
+	<listener>
+		<listener-class>org.springframework.web.util.IntrospectorCleanupListener</listener-class>
+	</listener>
+
+	<!-- Character Filter -->
+	<filter>
+		<filter-name>encodingFilter</filter-name>
+		<filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
+		<init-param>
+			<param-name>encoding</param-name>
+			<param-value>UTF-8</param-value>
+		</init-param>
+	</filter>
+	<filter-mapping>
+		<filter-name>encodingFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+
+	<!-- apache shiro权限 -->
+	<filter>
+		<filter-name>shiroFilter</filter-name>
+		<filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
+		<init-param>
+			<param-name>targetFilterLifecycle</param-name>
+			<param-value>true</param-value>
+		</init-param>
+	</filter>
+	<filter-mapping>
+		<filter-name>shiroFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+
+	<servlet>
+		<servlet-name>spring</servlet-name>
+		<servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+		<init-param>
+			<param-name>contextConfigLocation</param-name>
+			<param-value>classpath:META-INF/spring-web/spring-servlet.xml</param-value>
+		</init-param>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>spring</servlet-name>
+		<url-pattern>/*</url-pattern>
+	</servlet-mapping>
+
+	<!-- spring security <filter> <filter-name>springSecurityFilterChain</filter-name> 
+		<filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class> 
+		</filter> <filter-mapping> <filter-name>springSecurityFilterChain</filter-name> 
+		<url-pattern>/*</url-pattern> </filter-mapping> -->
+	<!-- cxf webservice -->
+	<servlet>
+		<servlet-name>cxf</servlet-name>
+		<servlet-class>org.apache.cxf.transport.servlet.CXFServlet</servlet-class>
+		<!-- <servlet-class>com.alibaba.dubbo.remoting.http.servlet.DispatcherServlet</servlet-class> -->
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>cxf</servlet-name>
+		<url-pattern>/webservice/*</url-pattern>
+	</servlet-mapping>
+
+
+	<!-- Spring Listener -->
+	<context-param>
+		<param-name>contextConfigLocation</param-name>
+		<param-value>classpath:META-INF/spring/root.xml</param-value>
+	</context-param>
+	<listener>
+		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+	</listener>
+
+	<session-config>
+		<session-timeout>120</session-timeout>
+	</session-config>
+
+	<!-- DO NOT remove this configure, to skip filtering the css, js, etc. resource. 
+	Tomcat, Jetty, JBoss, and GlassFish 自带的默认Servlet的名字： "default"
+	Google App Engine 自带的 默认Servlet的名字： "_ah_default"
+	Resin 自带的 默认Servlet的名字： "resin-file"
+	WebLogic 自带的 默认Servlet的名字： "FileServlet"
+	WebSphere  自带的 默认Servlet的名字： "SimpleFileServlet" 
+	<servlet-mapping>
+	    <servlet-name>default</servlet-name>
+	    <url-pattern>/resource/*</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+	    <servlet-name>FileServlet</servlet-name>
+	    <url-pattern>/resource/*</url-pattern>
+	</servlet-mapping>
+	-->
+
+	<!-- <error-page> <error-code>404</error-code> <location>/error/404.html</location> 
+		</error-page> <error-page> <error-code>500</error-code> <location>/error/500.html</location> 
+		</error-page> -->
+	<distributable />
+	
+	<absolute-ordering />
+</web-app>

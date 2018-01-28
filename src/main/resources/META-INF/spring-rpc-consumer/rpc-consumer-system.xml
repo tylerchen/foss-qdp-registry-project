@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tx="http://www.springframework.org/schema/tx" xmlns:security="http://www.springframework.org/schema/security"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xsi:schemaLocation="http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.2.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.2.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.2.xsd">
+	<description>
+	<![CDATA[
+		Spring RPC HttpInvoker
+	]]>
+	</description>
+	<bean    id="authAccountApplication"
+		  class="org.springframework.remoting.httpinvoker.HttpInvokerProxyFactoryBean">
+		<property name="serviceUrl"                 value="{${rpc.url}}/authAccountApplication" />
+		<property name="serviceInterface"           value="com.foreveross.qdp.application.system.auth.rs.AuthAccountApplication" />
+		<property name="httpInvokerRequestExecutor"   ref="httpInvokerRequestExecutor" />
+	</bean>
+	<bean    id="authOrganizationApplication"
+		  class="org.springframework.remoting.httpinvoker.HttpInvokerProxyFactoryBean">
+		<property name="serviceUrl"                 value="{${rpc.url}}/authOrganizationApplication" />
+		<property name="serviceInterface"           value="com.foreveross.qdp.application.system.auth.rs.AuthOrganizationApplication" />
+		<property name="httpInvokerRequestExecutor"   ref="httpInvokerRequestExecutor" />
+	</bean>
+	<bean    id="authResourceApplication"
+		  class="org.springframework.remoting.httpinvoker.HttpInvokerProxyFactoryBean">
+		<property name="serviceUrl"                 value="{${rpc.url}}/authResourceApplication" />
+		<property name="serviceInterface"           value="com.foreveross.qdp.application.system.auth.rs.AuthResourceApplication" />
+		<property name="httpInvokerRequestExecutor"   ref="httpInvokerRequestExecutor" />
+	</bean>
+	<bean    id="authUserApplication"
+		  class="org.springframework.remoting.httpinvoker.HttpInvokerProxyFactoryBean">
+		<property name="serviceUrl"                 value="{${rpc.url}}/authUserApplication" />
+		<property name="serviceInterface"           value="com.foreveross.qdp.application.system.auth.rs.AuthUserApplication" />
+		<property name="httpInvokerRequestExecutor"   ref="httpInvokerRequestExecutor" />
+	</bean>
+	<bean    id="authRoleApplication"
+		  class="org.springframework.remoting.httpinvoker.HttpInvokerProxyFactoryBean">
+		<property name="serviceUrl"                 value="{${rpc.url}}/authRoleApplication" />
+		<property name="serviceInterface"           value="com.foreveross.qdp.application.system.auth.rs.AuthRoleApplication" />
+		<property name="httpInvokerRequestExecutor"   ref="httpInvokerRequestExecutor" />
+	</bean>
+	<bean    id="authMenuApplication"
+		  class="org.springframework.remoting.httpinvoker.HttpInvokerProxyFactoryBean">
+		<property name="serviceUrl"                 value="{${rpc.url}}/authMenuApplication" />
+		<property name="serviceInterface"           value="com.foreveross.qdp.application.system.auth.rs.AuthMenuApplication" />
+		<property name="httpInvokerRequestExecutor"   ref="httpInvokerRequestExecutor" />
+	</bean>
+	<bean    id="sysDictionaryApplication"
+		  class="org.springframework.remoting.httpinvoker.HttpInvokerProxyFactoryBean">
+		<property name="serviceUrl"                 value="{${rpc.url}}/sysDictionaryApplication" />
+		<property name="serviceInterface"           value="com.foreveross.qdp.application.system.common.rs.SysDictionaryApplication" />
+		<property name="httpInvokerRequestExecutor"   ref="httpInvokerRequestExecutor" />
+	</bean>
+	<bean    id="sysOpenreportApplication"
+		  class="org.springframework.remoting.httpinvoker.HttpInvokerProxyFactoryBean">
+		<property name="serviceUrl"                 value="{${rpc.url}}/sysOpenreportApplication" />
+		<property name="serviceInterface"           value="com.foreveross.qdp.application.system.common.rs.SysOpenreportApplication" />
+		<property name="httpInvokerRequestExecutor"   ref="httpInvokerRequestExecutor" />
+	</bean>
+	<bean    id="sysI18nApplication"
+		  class="org.springframework.remoting.httpinvoker.HttpInvokerProxyFactoryBean">
+		<property name="serviceUrl"                 value="{${rpc.url}}/sysI18nApplication" />
+		<property name="serviceInterface"           value="com.foreveross.qdp.application.system.common.rs.SysI18nApplication" />
+		<property name="httpInvokerRequestExecutor"   ref="httpInvokerRequestExecutor" />
+	</bean>
+	<bean    id="sysExTableApplication"
+		  class="org.springframework.remoting.httpinvoker.HttpInvokerProxyFactoryBean">
+		<property name="serviceUrl"                 value="{${rpc.url}}/sysExTableApplication" />
+		<property name="serviceInterface"           value="com.foreveross.qdp.application.system.common.rs.SysExTableApplication" />
+		<property name="httpInvokerRequestExecutor"   ref="httpInvokerRequestExecutor" />
+	</bean>
+	<bean    id="sysExDataApplication"
+		  class="org.springframework.remoting.httpinvoker.HttpInvokerProxyFactoryBean">
+		<property name="serviceUrl"                 value="{${rpc.url}}/sysExDataApplication" />
+		<property name="serviceInterface"           value="com.foreveross.qdp.application.system.common.rs.SysExDataApplication" />
+		<property name="httpInvokerRequestExecutor"   ref="httpInvokerRequestExecutor" />
+	</bean>
+	<bean    id="sysQueryApplication"
+		  class="org.springframework.remoting.httpinvoker.HttpInvokerProxyFactoryBean">
+		<property name="serviceUrl"                 value="{${rpc.url}}/sysQueryApplication" />
+		<property name="serviceInterface"           value="com.foreveross.qdp.application.system.common.rs.SysQueryApplication" />
+		<property name="httpInvokerRequestExecutor"   ref="httpInvokerRequestExecutor" />
+	</bean>
+	<bean    id="sysScriptApplication"
+		  class="org.springframework.remoting.httpinvoker.HttpInvokerProxyFactoryBean">
+		<property name="serviceUrl"                 value="{${rpc.url}}/sysScriptApplication" />
+		<property name="serviceInterface"           value="com.foreveross.qdp.application.system.common.rs.SysScriptApplication" />
+		<property name="httpInvokerRequestExecutor"   ref="httpInvokerRequestExecutor" />
+	</bean>
+	<bean    id="logAccessApplication"
+		  class="org.springframework.remoting.httpinvoker.HttpInvokerProxyFactoryBean">
+		<property name="serviceUrl"                 value="{${rpc.url}}/logAccessApplication" />
+		<property name="serviceInterface"           value="com.foreveross.qdp.application.system.log.rs.LogAccessApplication" />
+		<property name="httpInvokerRequestExecutor"   ref="httpInvokerRequestExecutor" />
+	</bean>
+	<bean    id="logOperationApplication"
+		  class="org.springframework.remoting.httpinvoker.HttpInvokerProxyFactoryBean">
+		<property name="serviceUrl"                 value="{${rpc.url}}/logOperationApplication" />
+		<property name="serviceInterface"           value="com.foreveross.qdp.application.system.log.rs.LogOperationApplication" />
+		<property name="httpInvokerRequestExecutor"   ref="httpInvokerRequestExecutor" />
+	</bean>
+
+</beans>
+

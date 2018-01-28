@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tx="http://www.springframework.org/schema/tx" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:task="http://www.springframework.org/schema/task" xmlns:lang="http://www.springframework.org/schema/lang"
+	xsi:schemaLocation="
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.2.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.2.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.2.xsd 
+		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.2.xsd
+		http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang-3.2.xsd
+		">
+	<description>
+	<![CDATA[
+	== spring task ==
+	如果不需要用到分布式任务，（不含状态，允许各个节点运行任务），的情况下考虑使用spring-task即可，否则考虑quartz.
+	在配置文件META-INF/spring-app/root.xml添加：
+	<import resource="classpath:META-INF/spring-tcutil/task-quartz.xml" />
+	]]>
+	</description>
+	<!-- 这里表示的是从第五秒开始 ，每三秒执行一次 （而不是 三分之五 秒执行一次哦~~）
+	<lang:groovy id="taskTest">
+		<lang:inline-script>
+		<![CDATA[
+package org.iff.test;
+import java.util.Date;
+public class TaskTest {
+@groovy.transform.CompileStatic
+public void say() {
+System.out.println("这个真好用!!!" + new Date());
+}
+@groovy.transform.CompileStatic
+public void hello(){
+System.out.println("hello!!!");
+}
+}
+		]]>
+		</lang:inline-script>
+	</lang:groovy>
+
+	<task:scheduled-tasks>
+		<task:scheduled ref="taskTest" method="say" cron="5/3 * * * * ?" />
+		<task:scheduled ref="taskTest" method="hello" cron="5/3 * * * * ?" />
+	</task:scheduled-tasks> -->
+</beans>

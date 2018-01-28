@@ -1,0 +1,195 @@
+<template>
+	<div class="qdp-list-layout">
+		<!-- 搜索 -->
+		<!-- 搜索-END -->
+		<!-- 操作栏 -->
+		<!-- 操作栏-END- -->
+		<!-- 列表 -->
+		<el-row class="qdp-list-content qdp-grid" type="flex" justify="start" align="top">
+			<el-col :span="24">
+				<el-collapse>
+					<el-collapse-item>
+						<template slot="title">登录密码加密</template>
+						<el-form class="qdp-edit-form" :model="passwordForm" label-width="80px" @keydown.13.native.stop="">
+							<el-form-item label="原始密码" prop="password">
+								<el-input v-model="passwordForm.password" placeholder="" size="small"></el-input>
+							</el-form-item>
+							<el-form-item label="加密结果" prop="result">
+								<el-input v-model="passwordForm.result" placeholder="" size="small"></el-input>
+							</el-form-item>
+							<el-row type="flex" justify="center" align="top" class="qdp-dialog-btns">
+								<el-button type="primary" @click="passwordFormEncrypt" icon="ion-checkmark">加密</el-button>
+							</el-row>
+						</el-form>
+					</el-collapse-item>
+				</el-collapse>
+				<el-collapse>
+					<el-collapse-item>
+						<template slot="title">RSA加密解密（BASE64）</template>
+						<el-form class="qdp-edit-form" :model="rsaForm" label-width="80px" @keydown.13.native.stop="">
+							<el-form-item label="RSA公钥/密钥" prop="key">
+								<el-input v-model="rsaForm.key" placeholder="" size="small" type="textarea"></el-input>
+							</el-form-item>
+							<el-form-item label="加密/解密内容" prop="content">
+								<el-input v-model="rsaForm.content" placeholder="" size="small" type="textarea"></el-input>
+							</el-form-item>
+							<el-form-item label="加密/解密结果" prop="result">
+								<el-input v-model="rsaForm.result" placeholder="" size="small" type="textarea"></el-input>
+							</el-form-item>
+							<el-row type="flex" justify="center" align="top" class="qdp-dialog-btns">
+								<el-button type="primary" @click="rsaFormEncrypt" icon="ion-checkmark">加密</el-button>
+								<el-button type="primary" @click="rsaFormDencrypt" icon="ion-checkmark">解密</el-button>
+							</el-row>
+						</el-form>
+					</el-collapse-item>
+				</el-collapse>
+				<el-collapse>
+					<el-collapse-item>
+						<template slot="title">URL构建</template>
+						<el-form class="qdp-edit-form" :model="urlBuilderForm" label-width="80px" @keydown.13.native.stop="">
+							<el-form-item label="Bean Name" prop="beanName">
+								<el-input v-model="urlBuilderForm.beanName" placeholder="" size="small"></el-input>
+							</el-form-item>
+							<el-form-item label="Method Name" prop="methodName">
+								<el-input v-model="urlBuilderForm.methodName" placeholder="" size="small"></el-input>
+							</el-form-item>
+							<el-form-item label="参数-0(JSON)" prop="arg0">
+								<el-input v-model="urlBuilderForm.arg0" placeholder="" size="small" type="textarea"></el-input>
+							</el-form-item>
+							<el-form-item label="参数-1(JSON)" prop="arg1">
+								<el-input v-model="urlBuilderForm.arg1" placeholder="" size="small" type="textarea"></el-input>
+							</el-form-item>
+							<el-form-item label="参数-2(JSON)" prop="arg2">
+								<el-input v-model="urlBuilderForm.arg2" placeholder="" size="small" type="textarea"></el-input>
+							</el-form-item>
+							<el-form-item label="参数-3(JSON)" prop="arg3">
+								<el-input v-model="urlBuilderForm.arg3" placeholder="" size="small" type="textarea"></el-input>
+							</el-form-item>
+							<el-form-item label="参数-4(JSON)" prop="arg4">
+								<el-input v-model="urlBuilderForm.arg4" placeholder="" size="small" type="textarea"></el-input>
+							</el-form-item>
+							<el-form-item label="结果" prop="result">
+								<el-input v-model="urlBuilderForm.result" placeholder="" size="small" type="textarea"></el-input>
+							</el-form-item>
+							<el-form-item label="执行结果" prop="runResult">
+								<el-input v-model="urlBuilderForm.runResult" placeholder="" size="small" type="textarea"></el-input>
+							</el-form-item>
+							<el-row type="flex" justify="center" align="top" class="qdp-dialog-btns">
+								<el-button type="primary" @click="buildUrl" icon="ion-checkmark">构建</el-button>
+								<el-button type="primary" @click="runUrl" icon="ion-checkmark">执行</el-button>
+							</el-row>
+						</el-form>
+					</el-collapse-item>
+				</el-collapse>
+			</el-col>
+		</el-row>
+		<!-- 列表-END -->
+		<!-- 分页 -->
+		<!-- 分页-END -->
+		<!-- 添加 -->
+		<!-- 添加-END -->
+		<!-- 修改 -->
+		<!-- 修改-END -->
+		<!-- 详情 -->
+		<!-- 详情-END -->
+	</div>
+</template>
+<script type="text/javascript">
+	define([ 'vue', "encrypt", "qdp" ], function(Vue) {
+		return {
+			template : template, //
+			components : {},
+			data : function() {
+				return {
+					passwordForm:{
+						password:'', result:''
+					},
+					rsaForm : {
+						key : '', content : '', result : ''
+					}, urlBuilderForm : {
+						beanName : '', methodName : '', arg0 : '', arg1 : '', arg2 : '', arg3 : '', arg4 : '', result : '', runResult : ''
+					},
+					//===
+					hotKey : {}, searchForm : {
+						id : '', name : '', dataSource : '', queryContent : '', type1 : '', type2 : '', description : '', updateTime : '', createTime : ''
+					}, enums : {}
+				};
+			}, //
+			created : function() {
+			}, //
+			mounted : function() {
+				//快捷键
+			},//
+			beforeDestroy : function() {
+				//快捷键
+			},//
+			methods : {
+				cache : getters.cache,//
+				accountId : getters.accountId, //
+				passwordFormEncrypt : function() {
+					var root = this;
+					var url = qdpFormatUrl("/system/encryptPassword.do?password={{d.password}}", root.passwordForm);
+					root.$http.get(qdpPathJoin(ctx, url)).then(function(data) {
+						root.passwordForm.result = qdpAjaxDataBody(data);
+					}, function(response) {
+						root.passwordForm.result = qdpToString(response);
+					});
+				},
+				rsaFormEncrypt : function() {
+					try {
+						var encrypt = new JSEncryptExports.JSEncrypt();
+						encrypt.setPublicKey(this.rsaForm.key);
+						this.rsaForm.result = encrypt.encrypt(this.rsaForm.content) + "";
+					} catch (err) {
+						this.rsaForm.result = err + "";
+					}
+				},
+				rsaFormDencrypt : function() {
+					try {
+						var decrypt = new JSEncryptExports.JSEncrypt();
+						decrypt.setPrivateKey(this.rsaForm.key);
+						this.rsaForm.result = decrypt.decrypt(this.rsaForm.content) + "";
+					} catch (err) {
+						this.rsaForm.result = err + "";
+					}
+				},
+				buildUrl : function() {
+					try {
+						var baseUrl = window.location.href, urlBuilderForm = this.urlBuilderForm;
+						baseUrl = baseUrl.substring(0, baseUrl.indexOf(ctx));
+						var query = {
+							arg0 : urlBuilderForm.arg0, arg1 : urlBuilderForm.arg1, arg2 : urlBuilderForm.arg2, arg3 : urlBuilderForm.arg3,
+							arg4 : urlBuilderForm.arg4
+						};
+						var paramStr = '';
+						qdpMap(query, function(value, key) {
+							if (value) {
+								if (value.charAt(0) == '{' || value.charAt(0) == '[') {//'}',']'
+									query[key] = JSON.parse(value);
+								}
+								paramStr = paramStr + '/' + key + '={{d.' + key + '}}';
+							}
+						});
+						query.beanName = urlBuilderForm.beanName;
+						query.methodName = urlBuilderForm.methodName;
+						var url = baseUrl + ctx + '/ws/json/{{d.beanName}}/{{d.methodName}}' + paramStr;
+						urlBuilderForm.result = qdpFormatUrl(url, query);
+					} catch (err) {
+						this.urlBuilderForm.result = err + "";
+					}
+				},
+				runUrl : function() {
+					var root = this;
+					root.$http.get(root.urlBuilderForm.result).then(function(data) {
+						root.urlBuilderForm.runResult = qdpToString(qdpAjaxData(data));
+					}, function(response) {
+						root.urlBuilderForm.runResult = qdpToString(response);
+					});
+				},
+				//
+				onPost : function(eventType, arg0, arg1, arg2, arg3) {
+				}
+			}
+		};
+	});
+</script>
