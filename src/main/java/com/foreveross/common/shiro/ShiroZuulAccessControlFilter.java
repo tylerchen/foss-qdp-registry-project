@@ -7,16 +7,18 @@
  ******************************************************************************/
 package com.foreveross.common.shiro;
 
+import com.foreveross.common.ResultBean;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.web.servlet.AdviceFilter;
+import org.iff.infra.util.Exceptions;
 import org.iff.infra.util.FCS;
 import org.iff.infra.util.HttpHelper;
-import org.iff.infra.util.Logger;
-import org.iff.infra.util.StringHelper;
 
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
@@ -25,30 +27,37 @@ import java.io.IOException;
  * @author <a href="mailto:iffiff1@gmail.com">Tyler Chen</a>
  * @since Aug 11, 2016
  */
-public class ShiroZuulAccessControlFilter extends AdviceFilter {
+public class ShiroZuulAccessControlFilter extends AdviceFilter implements OnceValidAdvice {
 
-    protected boolean preHandle(ServletRequest servletRequest, ServletResponse servletResponse) throws Exception {
+    private static final org.iff.infra.util.Logger.Log Logger = org.iff.infra.util.Logger.get("FOSS-SHIRO");
+
+    public boolean preHandle(ServletRequest servletRequest, ServletResponse servletResponse) throws Exception {
         HttpServletRequest request = (HttpServletRequest) servletRequest;
+        HttpServletResponse response = (HttpServletResponse) servletResponse;
+        //是否为OnceValidAdvice。
+        boolean isOnceValidAdvice = Boolean.TRUE.equals(request.getAttribute(OnceValidAdvice.REQUEST_MARK));
+
         String ip = HttpHelper.getRemoteIpAddr(request);
         /**
          * 验证： 如果Header[zuul]采用了约定的加密方式（把客户端的所有IP进行md5(md5(ip).reverse())拼接），服务端拿到客户端的IP也进行相同的加密方式，最后对比是否包含加密段即可，【非严谨验证方式】。
          */
-        boolean valid = HttpHelper.validateIpMd5(ip, request.getHeader("zuul"));
-        if (!valid) {
-            //enable localhost, if you don't want to enable localhost use ShiroIpAccessControlFilter
-            String[] ips = new String[]{"0:0:0:0:0:0:0:*", "127.0.0.*"};
-            for (String aip : ips) {
-                valid = StringHelper.wildCardMatch(ip, aip.trim());
-                if (valid) {
-                    break;
-                }
-            }
+        String zuul = request.getHeader("zuul");
+
+        if (StringUtils.isBlank(zuul)) {
+            return false;
         }
+
+        Logger.debug(FCS.get("Shiro ShiroZuulAccessControlFilter.preHandle, ip: {0}, zuul: {1}", ip, zuul));
+
+        boolean valid = HttpHelper.validateIpMd5(ip, zuul);
+
         if (valid) {
-            Logger.debug(FCS.get("Accept zuul {0} access!", ip));
             return true;
         } else {
-            Logger.debug(FCS.get("Deny zuul {0} access!", ip));
+            ShiroHelper.retrun401(request, response, ResultBean.error().setBody("Unauthorized"));
+            if (isOnceValidAdvice) {
+                Exceptions.runtime("Shiro not permit, end OnceValidAdvice chain.", "FOSS-SHIRO-0100");
+            }
             return false;
         }
     }

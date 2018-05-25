@@ -13,7 +13,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.web.servlet.AdviceFilter;
-import org.iff.infra.util.*;
+import org.iff.infra.util.Exceptions;
+import org.iff.infra.util.FCS;
+import org.iff.infra.util.I18nHelper;
+import org.iff.infra.util.ThreadLocalHelper;
 
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
@@ -22,9 +25,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Date;
-import java.util.List;
 import java.util.Locale;
 
 /**
@@ -33,19 +34,20 @@ import java.util.Locale;
  * @author <a href="mailto:iffiff1@gmail.com">Tyler Chen</a>
  * @since Aug 11, 2016
  */
-public class ShiroAccessControlFilter extends AdviceFilter {
+public class ShiroAccessControlFilter extends AdviceFilter implements OnceValidAdvice {
 
-    private static List<String> skipUrls = Arrays.asList("", "/", "/index.html", "/system/login.do",
-            "/system/logout.do", "/system/valid.png", "/common/accessDeny.html", "/common/errors.html");
+    private static final org.iff.infra.util.Logger.Log Logger = org.iff.infra.util.Logger.get("FOSS-SHIRO");
 
-    protected boolean preHandle(ServletRequest servletRequest, ServletResponse servletResponse) throws Exception {
+    public boolean preHandle(ServletRequest servletRequest, ServletResponse servletResponse) throws Exception {
         HttpServletRequest request = (HttpServletRequest) servletRequest;
         HttpServletResponse response = (HttpServletResponse) servletResponse;
         String url = StringUtils.removeStart(request.getRequestURI(), request.getContextPath());
         Subject subject = SecurityUtils.getSubject();
         ShiroUser loginUser = null;
+        //是否为OnceValidAdvice。
+        boolean isOnceValidAdvice = Boolean.TRUE.equals(request.getAttribute(OnceValidAdvice.REQUEST_MARK));
         {
-            Logger.debug(FCS.get("ShiroAccessControlFilter.preHandle, uri: {0}", url));
+            Logger.debug(FCS.get("Shiro ShiroAccessControlFilter.preHandle, uri: {0}", url));
             LogHelper.accessLog(loginUser != null ? loginUser.getLoginId() : null, request.getRemoteAddr(), url, "URL",
                     new Date());
         }
@@ -81,23 +83,19 @@ public class ShiroAccessControlFilter extends AdviceFilter {
             } catch (Exception e) {
             }
         }
-        if (skipUrls.contains(url) || url.startsWith("/resource/") || url.endsWith(".html")) {
+        if (!isOnceValidAdvice && ShiroHelper.skipUrl(url)) {
             return true;
         }
         {
             if (subject.getPrincipal() == null || !subject.isAuthenticated()) {
-                response.reset();
-                response.setStatus(401);
-                response.getWriter().write(GsonHelper.toJsonString(ResultBean.error().setBody("Unauthorized")));
+                sendRedirectOrUnauthorizedJson(request, response, url, isOnceValidAdvice);
                 return false;
             }
         }
 
         ShiroUser user = (ShiroUser) subject.getSession().getAttribute("USER");
         if (user == null) {
-            response.reset();
-            response.setStatus(401);
-            response.getWriter().write(GsonHelper.toJsonString(ResultBean.error().setBody("Unauthorized")));
+            sendRedirectOrUnauthorizedJson(request, response, url, isOnceValidAdvice);
             return false;
         }
         {//设置当前用户到线程领域
@@ -107,15 +105,18 @@ public class ShiroAccessControlFilter extends AdviceFilter {
         }
         // 如果是超级用户
         if (subject.hasRole("ADMIN")) {
-            Logger.debug("==ADMIN is Logging==");
+            Logger.debug("Shiro ==ADMIN is Logging==");
             return true;
         }
 
         {//开启shiro鉴权
-            if (!subject.isPermitted(url)) {
-                response.reset();
-                response.setStatus(401);
-                response.getWriter().write(GsonHelper.toJsonString(ResultBean.error().setBody("Unauthorized")));
+            if (!subject.isPermitted(url)) {//鉴权不通过就要返回401或重定向
+                if (!ShiroHelper.sendRedirect(response, url)) {
+                    ShiroHelper.retrun401(request, response, ResultBean.error().setBody("Unauthorized"));
+                }
+                if (isOnceValidAdvice) {
+                    Exceptions.runtime("Shiro not permit, end OnceValidAdvice chain.", "FOSS-SHIRO-0100");
+                }
                 return false;
             }
         }
@@ -128,4 +129,12 @@ public class ShiroAccessControlFilter extends AdviceFilter {
         super.cleanup(request, response, existing);
     }
 
+    private void sendRedirectOrUnauthorizedJson(HttpServletRequest request, HttpServletResponse response, String url,
+                                                boolean isOnceValidAdvice) throws IOException {
+        if (!isOnceValidAdvice) {
+            if (!ShiroHelper.sendRedirect(response, url)) {
+                ShiroHelper.retrun401(request, response, ResultBean.error().setBody("Unauthorized"));
+            }
+        }
+    }
 }

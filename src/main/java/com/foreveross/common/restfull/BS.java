@@ -10,6 +10,8 @@ package com.foreveross.common.restfull;
 import java.lang.annotation.*;
 
 /**
+ * Base restful annotation support.
+ *
  * @author <a href="mailto:iffiff1@gmail.com">Tyler Chen</a>
  * @since Dec 18, 2017
  */
@@ -64,6 +66,7 @@ public interface BS {
 
     /**
      * 限制：路径参数中如果要转换为VO中属性时，VO属性是复杂类型的包括数据，无法进行转换（无法把String转换成数组或复杂类型）。
+     * 用于类型及restful方法。
      *
      * @author <a href="mailto:iffiff1@gmail.com">Tyler Chen</a>
      * @since Dec 18, 2017
@@ -89,6 +92,8 @@ public interface BS {
     }
 
     /**
+     * 定义对象的属性，用于@Param内，可以指定默认值，如果不指定默认值，可以使用@Param的value。
+     *
      * @author <a href="mailto:iffiff1@gmail.com">Tyler Chen</a>
      * @since Dec 18, 2017
      */
@@ -103,6 +108,8 @@ public interface BS {
     }
 
     /**
+     * 定义参数
+     *
      * @author <a href="mailto:iffiff1@gmail.com">Tyler Chen</a>
      * @since Dec 18, 2017
      */

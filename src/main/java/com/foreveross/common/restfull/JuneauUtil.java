@@ -1,4 +1,4 @@
-///*******************************************************************************
+package com.foreveross.common.restfull;///*******************************************************************************
 // * Copyright (c) Dec 4, 2017 @author <a href="mailto:iffiff1@gmail.com">Tyler Chen</a>.
 // * All rights reserved.
 // *

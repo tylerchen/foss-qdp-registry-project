@@ -56,7 +56,7 @@ public class UriManager {
                 }
             }
             parseProperties(map);
-            invoke("/AuthAccount", "POST", MapHelper.toMap("id", "id"));
+            invoke("/AuthAccount", "POST", MapHelper.toMap("id", "id"), new Object[0]);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -80,15 +80,18 @@ public class UriManager {
         {//先做第一次分类
             for (Entry<String, String> entry : props.entrySet()) {
                 String key = entry.getKey();
-                if (key.endsWith(".restful.tc")) {
+                String value = entry.getValue();
+                if (key.endsWith(".restful.tc") && "true".equals(value)) {
                     restList.add(StringUtils.remove(key, ".restful.tc"));
-                } else if (key.indexOf(".interface") > 0) {
-                    classMap.put(key, entry.getValue());
-                } else if (key.indexOf(".method.") > 0) {
-                    if (key.indexOf(".arg") > 0) {
-                        argMap.put(key, entry.getValue());
-                    } else {
-                        methodMap.put(key, entry.getValue());
+                } else {
+                    if (key.indexOf(".interface") > 0) {
+                        classMap.put(key, value);
+                    } else if (key.indexOf(".method.") > 0) {
+                        if (key.indexOf(".arg") > 0) {
+                            argMap.put(key, value);
+                        } else {
+                            methodMap.put(key, value);
+                        }
                     }
                 }
             }
@@ -198,7 +201,8 @@ public class UriManager {
                             int i = 0;
                             for (; i < types.length; i++) {
                                 String argType = argsTypes.get(i);
-                                if (types[i].isArray() && (types[i].getComponentType() + "[]").equals(argType)) {
+                                if (types[i].isArray()
+                                        && (types[i].getComponentType().getSimpleName() + "[]").equals(argType)) {
                                     continue;
                                 } else if (types[i].getSimpleName().equals(argType)
                                         || types[i].getName().equals(argType)) {
@@ -349,7 +353,7 @@ public class UriManager {
      * @author <a href="mailto:iffiff1@gmail.com">Tyler Chen</a>
      * @since Dec 20, 2017
      */
-    public static <T> T invoke(String uri, String requestMethod, Map<String, Object> conditionParams) {
+    public static <T> T invoke(String uri, String requestMethod, Map<String, Object> conditionParams, Object[] datas) {
         // Spring bean调用的参数
         List<Object> args = new ArrayList<Object>();
         String beanName = null;
@@ -361,51 +365,26 @@ public class UriManager {
             Map<String, String> map = tpl.pathParams(uri);
             // 方法的参数及注解
             Multimap<String, Map<String, String>> params = tpl.getMethodParams();
-            for (Entry<String, Map<String, String>> param : params.entries()) {
-                String key = param.getKey();
-                // 获得类型转换，如是基本Java数据类型及数组，可以通过类型转换器直接转换
-                TypeConvert convert = TypeConvertHelper.me().get(key);
-                if (convert.getName().equalsIgnoreCase("null")) {// 没有对应的类型转换器，可能这个是一个VO类型
-                    Map<String, Object> values = new HashMap<String, Object>();
-                    // 如果方法的参数没有注解，那么默认路径上所有的参数都是VO的属性。
-                    if (param.getValue().isEmpty()) {
-                        values.putAll(map);
-                        BS.Method bsMehtod = BS.Method.get(requestMethod);
-                        if (bsMehtod == BS.Method.POST || bsMehtod == BS.Method.PUT) {
-                            values.putAll(conditionParams);
-                        }
-                    }
-                    // 如果方法的参数有注解，那么先把注解的默认值添加上，再用路径的值来覆盖。
-                    else {
-                        // 添加所有默认值，没有默认值的都为空。
-                        values.putAll(param.getValue());
-                        for (Entry<String, String> field : param.getValue().entrySet()) {
-                            Object value = null;
-                            // 如果路径中没有对应的值，就从表单中取
-                            if (!map.containsKey(field.getKey())) {
-                                conditionParams.get(field.getKey());
-                            }
-                            // 如果路径中有对应的值
-                            else {
-                                value = map.get(field.getKey());
-                            }
-                            // 如果值不为nullChar，就采用
-                            if (value != null && !tpl.getNullChar().equals(value)) {
-                                values.put(field.getKey(), value);
-                            }
-                        }
-                    }
-                    //使用POVO拷贝，转换成VO对象。
-                    args.add(POVOCopyHelper.copyTo(values, Class.forName(key)));
-                } else if (!param.getValue().isEmpty()) {//如果方法的参数注解不为空，就进行基本类型转换
-                    String value = map.get(param.getValue().keySet().iterator().next());
-                    if (convert.getName().startsWith("[L")) {//如果是一个数组，默认以逗号分割
-                        args.add(convert.convert(key, StringUtils.split(value, ','), String[].class, null));
-                    } else {
-                        args.add(convert.convert(key, value, String.class, null));
-                    }
+            requestMethod = requestMethod.toUpperCase();
+            if (requestMethod.equals("GET") //
+                    || requestMethod.equals("OPTIONS") //
+                    || requestMethod.equals("DELETE") // Permitted as spec is ambiguous.
+                    || requestMethod.equals("PROPFIND") // (WebDAV) without body: request <allprop/>
+                    || requestMethod.equals("MKCOL") // (WebDAV) may contain a body, but behaviour is unspecified
+                    || requestMethod.equals("LOCK")) // (WebDAV) body: create lock, without body: refresh lock
+            {
+                formDataToMethodArguments(requestMethod, conditionParams, args, tpl, map, params);
+            }
+            if (requestMethod.equals("POST") //
+                    || requestMethod.equals("PUT") //
+                    || requestMethod.equals("PATCH")//
+                    || requestMethod.equals("PROPPATCH") // WebDAV
+                    || requestMethod.equals("REPORT")) // CalDAV/CardDAV (defined in WebDAV Versioning)
+            {
+                if (datas != null && datas.length > 0) {
+                    postDataToMethodArguments(datas, args, map, params);
                 } else {
-                    args.add(null);
+                    formDataToMethodArguments(requestMethod, conditionParams, args, tpl, map, params);
                 }
             }
             // 拿到Spring的Bean对象
@@ -418,6 +397,83 @@ public class UriManager {
                     e.getMessage(), uri, beanName, XStreamHelper.toXml(args)), e);
         }
         return null;
+    }
+
+    private static void postDataToMethodArguments(Object[] datas, List<Object> args, Map<String, String> map,
+                                                  Multimap<String, Map<String, String>> params) throws ClassNotFoundException {
+        int index = 0;
+        for (Entry<String, Map<String, String>> param : params.entries()) {
+            Object arg = datas.length > index ? datas[index] : null;
+            index++;
+            String key = param.getKey();
+            // 获得类型转换，如是基本Java数据类型及数组，可以通过类型转换器直接转换
+            TypeConvert convert = TypeConvertHelper.me().get(key);
+            if (convert.getName().equalsIgnoreCase("null")) {// 没有对应的类型转换器，可能这个是一个VO类型
+                //使用POVO拷贝，转换成VO对象。
+                args.add(POVOCopyHelper.copyTo(arg, Class.forName(key)));
+            } else if (!param.getValue().isEmpty()) {//如果方法的参数注解不为空，就进行基本类型转换
+                String value = map.get(param.getValue().keySet().iterator().next());
+                if (convert.getName().startsWith("[L")) {//如果是一个数组，默认以逗号分割
+                    args.add(convert.convert(key, StringUtils.split(value, ','), String[].class, null));
+                } else {
+                    args.add(convert.convert(key, value, String.class, null));
+                }
+            } else {
+                args.add(null);
+            }
+        }
+    }
+
+    private static void formDataToMethodArguments(String requestMethod, Map<String, Object> conditionParams,
+                                                  List<Object> args, UriTemplate tpl, Map<String, String> map, Multimap<String, Map<String, String>> params)
+            throws ClassNotFoundException {
+        for (Entry<String, Map<String, String>> param : params.entries()) {
+            String key = param.getKey();
+            // 获得类型转换，如是基本Java数据类型及数组，可以通过类型转换器直接转换
+            TypeConvert convert = TypeConvertHelper.me().get(key);
+            if (convert.getName().equalsIgnoreCase("null")) {// 没有对应的类型转换器，可能这个是一个VO类型
+                Map<String, Object> values = new HashMap<String, Object>();
+                // 如果方法的参数没有注解，那么默认路径上所有的参数都是VO的属性。
+                if (param.getValue().isEmpty()) {
+                    values.putAll(map);
+                    BS.Method bsMehtod = BS.Method.get(requestMethod);
+                    if (bsMehtod == BS.Method.POST || bsMehtod == BS.Method.PUT) {
+                        values.putAll(conditionParams);
+                    }
+                }
+                // 如果方法的参数有注解，那么先把注解的默认值添加上，再用路径的值来覆盖。
+                else {
+                    // 添加所有默认值，没有默认值的都为空。
+                    values.putAll(param.getValue());
+                    for (Entry<String, String> field : param.getValue().entrySet()) {
+                        Object value = null;
+                        // 如果路径中没有对应的值，就从表单中取
+                        if (!map.containsKey(field.getKey())) {
+                            conditionParams.get(field.getKey());
+                        }
+                        // 如果路径中有对应的值
+                        else {
+                            value = map.get(field.getKey());
+                        }
+                        // 如果值不为nullChar，就采用
+                        if (value != null && !tpl.getNullChar().equals(value)) {
+                            values.put(field.getKey(), value);
+                        }
+                    }
+                }
+                //使用POVO拷贝，转换成VO对象。
+                args.add(POVOCopyHelper.copyTo(values, Class.forName(key)));
+            } else if (!param.getValue().isEmpty()) {//如果方法的参数注解不为空，就进行基本类型转换
+                String value = map.get(param.getValue().keySet().iterator().next());
+                if (convert.getName().startsWith("[L")) {//如果是一个数组，默认以逗号分割
+                    args.add(convert.convert(key, StringUtils.split(value, ','), String[].class, null));
+                } else {
+                    args.add(convert.convert(key, value, String.class, null));
+                }
+            } else {
+                args.add(null);
+            }
+        }
     }
 
     public static class UriTemplate {

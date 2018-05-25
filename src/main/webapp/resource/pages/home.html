@@ -1,55 +1,72 @@
 <template>
-    <div class="qdp-head-bmenu-footer-layout">
-        <el-row class="qdp-header" type="flex" justify="start" align="middle">
-            <el-col class="qdp-header-start" :span="4"><div class="qdp-logo">QDP</div></el-col>
-            <el-col class="qdp-header-center" :span="14"></el-col>
-            <el-col class="qdp-header-end" :span="6">
-            	<el-row type="flex" justify="end" align="middle" style="padding-right: 10px">
-           			<el-button type="text">{{(account()||{}).loginId}}</el-button>
-           			<el-button type="text" @click="loginOut">登出</el-button>
-            	</el-row>
-            </el-col>
-        </el-row>
-        <el-row class="qdp-content" type="flex" justify="start" align="top">
-            <el-col class="qdp-content-start" :span="menuFold?1:4">
-            	<el-button type="text" class="qdp-fold" title="折叠" @click="onPost('menu-action','fold')" style="top:0;position: relative;float: right;z-index: 1;width:10px;"><i class="el-icon-ion-android-more-vertical"></i></el-button>
-                <el-menu v-if="!menuFold" class="qdp-el-vmenu" theme="dark" :router="true" @select="onPost.call(this, 'menu-select', arguments[0], arguments[1])" :default-openeds="menus.opens" :default-active="menus.active">
-                    <template v-for="(item, key) in menus.items">
-                        <el-submenu v-if="item.items" :index="item.id" :key="item.id"> <span slot="title"><i :class="qdpIcon(menus, item)"></i>{{qdpTitle(menus,item)}}</span>
-                            <template v-for="(sitem, skey) in item.items">
-		                        <el-submenu v-if="sitem.items" :index="sitem.id" :key="sitem.id"> <span slot="title"><i :class="qdpIcon(menus, sitem)"></i>{{qdpTitle(menus,sitem)}}</span>
-		                            <el-menu-item v-for="(ssitem, sskey) in sitem.items" :key="ssitem.id" :index="qdpUrl(menus, ssitem)"> <i :class="qdpIcon(menus, ssitem)"></i>{{qdpTitle(menus, ssitem)}}</el-menu-item>
-		                        </el-submenu>
-		                        <el-menu-item v-if="!sitem.items" :index="sitem.id">
-		                            <i :class="qdpIcon(menus, sitem)"></i>{{qdpTitle(menus, sitem)}}</el-menu-item>
-		                    </template>
-                        </el-submenu>
-                        <el-menu-item v-if="!item.items" :index="item.id">
-                            <i :class="qdpIcon(menus, item)"></i>{{qdpTitle(menus, item)}}</el-menu-item>
-                    </template>
-                </el-menu>
-                <div v-if="menuFold" class="qdp-menu-fold">
-                	<el-collapse v-for="(item, key) in menus.items" :key="item">
-                		<el-collapse-item>
-                			<template slot="title"><i :class="qdpIcon(menus, item)" :title="qdpTitle(menus, item)"></i></template><!-- level 1 -->
-	                		<el-collapse v-if="item.items" v-for="(sitem, skey) in item.items" :key="sitem">
-	                			<el-collapse-item>
-	                				<template slot="title"><i :class="qdpIcon(menus, sitem)" :title="qdpTitle(menus, sitem)"></i></template><!-- level 2 -->
-	                				<div v-for="(ssitem, sskey) in sitem.items" :key="ssitem" class="qdp-menu-fold--leaf">
-	                					<el-button size="mini" type="text" @click="goToUrl(qdpUrl(menus, ssitem))" :title="qdpTitle(menus, ssitem)"><i :class="qdpIcon(menus, ssitem)"></i></el-button><!-- level 3 -->
-	                				</div>
-	                			</el-collapse-item>
-	                		</el-collapse>
-                		</el-collapse-item>
-                	</el-collapse>
-                </div>
-            </el-col>
-            <el-col class="qdp-content-end" :span="menuFold?23:20"><router-view></router-view></el-col>
-        </el-row>
-        <el-row class="qdp-footer" type="flex" justify="center" align="top">
-            <div>2017-2019 &copy; Forever Open Source & Forever Flying {{app_version}}</div>
-        </el-row>
+  <div class="home">
+    <div class="home_header f-con">
+      <div class="home_header_img f-left">
+        <img src="../modules/elementui-2.3.5/img/logo1.png" alt="" height="38px" @click="onPost('action-bar','imgclk')">
+      </div>
+      <div class="home_welcome f-left">欢迎您使用恒拓微服务平台系统</div>
+      <div class="f-right">
+        <el-button type="text">{{(account()||{}).loginId}}</el-button>
+        <el-button type="text">个人设置</el-button>
+        <el-button type="text" @click="loginOut">登出</el-button>
+      </div>
     </div>
+    <div class="home_center">
+      <div class="home_left">
+        <el-button type="text" @click="onPost('menu-action','fold')" class="home_left_btn">
+          <i class="el-icon-d-arrow-left" :class="{'icon--close': menuFold}"></i>
+        </el-button>
+        <el-menu class="home_menu"
+                 background-color="#363e42"
+                 text-color="#aaaaaa"
+                 active-text-color="#ffffff"
+                 @select="selectMenu"
+                 :default-openeds="menus.opens"
+                 :default-active="menus.active"
+                 :collapse="menuFold"
+                 router>
+          <template v-for="(item, key) in menus.items">
+            <el-menu-item v-if="!item.items" :index="qdpUrl(menus, item)">
+              <i :class="qdpIcon(menus, item)"></i>
+              <span slot="title">{{qdpTitle(menus, item)}}</span>
+            </el-menu-item>
+            <el-submenu v-else :index="item.id" :key="item.id">
+              <template slot="title">
+                <i :class="qdpIcon(menus, item)"></i>
+                <span slot="title">{{qdpTitle(menus, item)}}</span>
+              </template>
+              <!--第2层-->
+              <template v-for="(sitem, key) in item.items">
+                <el-menu-item v-if="!sitem.items" :index="qdpUrl(menus, sitem)">
+                  <i :class="qdpIcon(menus, sitem)"></i>
+                  <span slot="title">{{qdpTitle(menus, sitem)}}</span>
+                </el-menu-item>
+                <el-submenu v-else :index="sitem.id" :key="sitem.id">
+                  <template slot="title">
+                    <i :class="qdpIcon(menus, sitem)"></i>
+                    <span slot="title">{{qdpTitle(menus, sitem)}}</span>
+                  </template>
+                  <!--第3层-->
+                  <el-menu-item v-for="ssitem in sitem.items" :index="qdpUrl(menus, ssitem)" :key="ssitem.id">
+                    <i :class="qdpIcon(menus, ssitem)"></i>
+                    <span slot="title">{{qdpTitle(menus, ssitem)}}</span>
+                  </el-menu-item>
+                  <!--第3层end-->
+                </el-submenu>
+              </template>
+              <!--第2层end-->
+            </el-submenu>
+          </template>
+        </el-menu>
+      </div>
+      <div :class="['home_content', {'home_content--open': menuFold}]">
+        <div class="home_content_router">
+          <router-view ></router-view>
+        </div>
+        <div class="home_footer">2017-2019 &copy; Forever Open Source & Forever Flying {{app_version}}</div>
+      </div>
+    </div>
+  </div>
 </template>
 <script type="text/javascript">
 define(['vue'], function(Vue) {
@@ -66,7 +83,7 @@ define(['vue'], function(Vue) {
                 menus: {
                 	urlField: 'resourceIdCode',
                 	opens:[],
-                	active:'',
+                	active: '',
                     items: {}
                 }
             };
@@ -164,8 +181,106 @@ define(['vue'], function(Vue) {
                 		root.menuFold = !root.menuFold;
                 	}
                 }
-            }
+                if ("action-bar" == eventType) {
+					LOG("action-bar:" + arg0);
+                    var action = arg0;
+                    if ('imgclk' == action) {
+                        Router.push("/home");
+                        return;
+                    }
+				}
+            },
+          selectMenu: function(index) {
+        	  this.menus.active = index
+          }
         }
     };
 });
 </script>
+<style>
+  /*主页*/
+  .home_header{
+    padding-right: 30px;
+    color: white;
+    height: 40px;
+    background-color: #363e42;
+  }
+  .home_header .el-button--text {
+    color: white;
+  }
+  .home_header_img {
+    width: 200px;
+  }
+  .home_header_img img {
+    height: 40px;
+    width: auto;
+    margin-left: 18px;
+    margin-top: 2px;
+  }
+  .home_welcome{
+    font-size: 14px;
+    margin-left: 30px;
+    line-height: 40px;
+  }
+  .home_center{
+    height: calc(100vh - 40px);
+    width: 100%;
+    position: relative;
+  }
+  .home_left{
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+    background-color: #363e42;
+  }
+  .home_left .el-button{
+    width: 100%;
+    padding: 4px 0;
+    border-bottom: 1px solid rgba(255,255,255, 0.2);
+    border-radius: 0;
+  }
+  .home_left .el-button--text{
+    color: white;
+  }
+  .home_left .el-button i{
+    transition: all 0.3s ease-in-out;
+  }
+  .home_left .el-button i.icon--close{
+    transform: rotate(180deg);
+  }
+  .home_menu.el-menu{
+    border: 0;
+  }
+  .home_menu .el-submenu__title, .home_menu .el-menu-item{
+    /*font-size: 12px;*/
+  }
+  .home_menu:not(.el-menu--collapse) {
+    width: 200px;
+  }
+  .home_content{
+    transition: all 0.3s ease-in-out;
+    position: absolute;
+    top: 0;
+    left: 200px;
+    height: 100%;
+    width: calc(100% - 200px);
+  }
+  .home_content--open{
+    left: 65px;
+    width: calc(100% - 65px);
+  }
+  .home_content_router{
+    background-color: #f3f4f6;
+    padding: 10px;
+    overflow-y: auto;
+    height: calc(100% - 44px);
+  }
+  .home_footer{
+    text-align: center;
+    height: 24px;
+    line-height: 24px;
+  }
+</style>

@@ -10,7 +10,7 @@
 				<el-collapse>
 					<el-collapse-item>
 						<template slot="title">登录密码加密</template>
-						<el-form class="qdp-edit-form" :model="passwordForm" label-width="80px" @keydown.13.native.stop="">
+						<el-form class="qdp-edit-form" :model="passwordForm" label-width="100px" @keydown.13.native.stop="">
 							<el-form-item label="原始密码" prop="password">
 								<el-input v-model="passwordForm.password" placeholder="" size="small"></el-input>
 							</el-form-item>
@@ -26,7 +26,7 @@
 				<el-collapse>
 					<el-collapse-item>
 						<template slot="title">RSA加密解密（BASE64）</template>
-						<el-form class="qdp-edit-form" :model="rsaForm" label-width="80px" @keydown.13.native.stop="">
+						<el-form class="qdp-edit-form" :model="rsaForm" label-width="120px" inline @keydown.13.native.stop="">
 							<el-form-item label="RSA公钥/密钥" prop="key">
 								<el-input v-model="rsaForm.key" placeholder="" size="small" type="textarea"></el-input>
 							</el-form-item>
@@ -46,7 +46,7 @@
 				<el-collapse>
 					<el-collapse-item>
 						<template slot="title">URL构建</template>
-						<el-form class="qdp-edit-form" :model="urlBuilderForm" label-width="80px" @keydown.13.native.stop="">
+						<el-form class="qdp-edit-form" :model="urlBuilderForm" inline label-width="110px" @keydown.13.native.stop="">
 							<el-form-item label="Bean Name" prop="beanName">
 								<el-input v-model="urlBuilderForm.beanName" placeholder="" size="small"></el-input>
 							</el-form-item>

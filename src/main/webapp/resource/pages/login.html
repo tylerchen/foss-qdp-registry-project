@@ -1,175 +1,231 @@
 <template>
-<div class="login-form">
-    <div class="layout">
-        <div class="layout-ceiling">
-            <el-row type="flex" justify="center" align="middle">
-           		<div class="qdp-logo">QDP登录</div>
-           	</el-row>
+    <div class="login-form">
+        <div class="login-form_title">
+            <img src="../modules/elementui-2.3.5/img/logo1.png" alt="" height="38px">
         </div>
-        <div class="form-height">
-            <el-row type="flex" justify="center" align="middle">
-                <el-col :span="9">
-                    <p class="form-height"></p>
-                </el-col>
-                <el-col :span="6" class="v-middle">
-                    <el-form ref="loginForm" :model="loginForm" :rules="ruleLoginForm" @keydown.enter.stop.native="onEnter" @keyup.enter.stop.native="doNothing">
-                        <el-row>
-                            <el-form-item prop="loginId">
-                                <el-input type="text" v-model="loginForm.loginId" placeholder="loginId">
-                                	<i class="el-icon-ion-ios-person-outline icon--primary" slot="prepend"></i>
-                                </el-input>
-                            </el-form-item>
-                        </el-row>
-                        <el-row>
-                            <el-form-item prop="loginPasswd">
-                                <el-input type="password" v-model="loginForm.loginPasswd" placeholder="Password">
-                                	<i class="el-icon-ion-ios-locked-outline" slot="prepend"></i>
-                                </el-input>
-                            </el-form-item>
-                        </el-row>
-                        <el-row>
-                            <el-form-item prop="validCode">
-                                <el-input type="text" v-model="loginForm.validCode" placeholder="ValidateCode" @keyup.enter="handleSubmit">
-                                <i class="el-icon-ion-ios-locked-outline" slot="prepend"></i> <img slot="append" height="22px" width="40px" style="vertical-align: middle;" :src.sync="validCodeUrl" @click="changeValidCode"> </el-input>
-                            </el-form-item>
-                        </el-row>
-                        <el-row>
-                            <el-form-item>
-                                <el-row type="flex" justify="center" align="middle">
-                                	<el-button type="primary" @click.native="handleSubmit">登录</el-button>
-                                </el-row>
-                            </el-form-item>
-                        </el-row>
-                    </el-form>
-                </el-col>
-                <el-col :span="9"></el-col>
-            </el-row>
+        <div class="login-form_form f-con">
+            <div class="login-form_form-left f-left v-center">
+                <el-row type="flex" justify="start" align="middle" class="dashboard_content">
+                    <el-col :span="24" class="dashboard_text">
+                        <h1>恒拓Tigon平台系统V4.0</h1>
+                        <h3>企业级微服务平台</h3>
+                        <h5><el-button size="mini" type="success" round>正式上线</el-button></h5>
+                        <img src="../modules/elementui-2.3.5/img/s_r.png" alt="">
+                    </el-col>
+                </el-row>
+            </div>
+            <div class="login-form_form-right f-right v-center">
+                <div class="login-form_form-title">用户登录</div>
+                <el-form ref="loginForm" :model="loginForm"
+                         :rules="ruleLoginForm" @keydown.enter.stop.native="onEnter"
+                         @keyup.enter.stop.native="doNothing">
+                    <el-form-item prop="loginId">
+                        <el-input type="text" v-model="loginForm.loginId" placeholder="loginId">
+                            <i class="el-icon-ion-ios-person-outline login-icon" slot="prepend"></i>
+                        </el-input>
+                    </el-form-item>
+                    <el-form-item prop="loginPasswd">
+                        <el-input type="password" v-model="loginForm.loginPasswd" placeholder="Password">
+                            <i class="el-icon-ion-ios-locked-outline login-icon" slot="prepend"></i>
+                        </el-input>
+                    </el-form-item>
+                    <el-form-item prop="validCode">
+                        <el-input type="text" v-model="loginForm.validCode" placeholder="ValidateCode"
+                                  @keyup.enter="handleSubmit">
+                            <i class="el-icon-ion-ios-locked-outline login-icon" slot="prepend"></i>
+                            <img slot="append" height="22px"
+                                 width="40px"
+                                 style="vertical-align: middle;"
+                                 :src.sync="validCodeUrl"
+                                 @click="changeValidCode"></el-input>
+                    </el-form-item>
+                    <el-form-item>
+                        <el-button type="primary" @click.native="handleSubmit">登录</el-button>
+                    </el-form-item>
+                </el-form>
+            </div>
         </div>
-        <div class="layout-copy">2017-2019 &copy; Forever Open Source & Forever Flying {{app_version}}</div>
+        <div class="login-form_footer">2017-2019 &copy; Forever Open Source & Forever Flying {{app_version}}</div>
     </div>
-</div>
 </template>
 <script type="text/javascript">
-define(['vue', "encrypt", "qdp"], function(Vue) {
+  define(['vue', "encrypt", "qdp"], function (Vue) {
     var encrypt = new JSEncryptExports.JSEncrypt();
     encrypt.setPublicKey('MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCJHezVuDIGtL8RIcrU+7jCdMJIN2Amuzv0pU0iDCkTtuAuKrJidh35Tqa+4l5Z0uDCy6KhJdBvE2tL/L8NUcw7e4bgbsV8rm+LZoKWjUTRPfwskCVDN4iUk6KAMpUyW73AHJz3XRZnq2Z+LmJy+6mnguofGU37Mr6c5Jeh4PbhcwIDAQAB');
     return {
-        template: template,
-        components: {
-        },
-        mounted: function() {
-            //document.addEventListener('keydown', this.onEnter)
-        },
-        beforeDestroy: function() {
-            //document.removeEventListener('keydown', this.onEnter)
-        },
-        data: function() {
-            return {
-            	app_version: app_version||'',
-                validCodeUrl: qdpPathJoin(ctx, "/system/valid.png?_=") + qdpRandom(),
-                loginForm: {
-                    loginId: '',
-                    loginPasswd: '',
-                    validCode: ''
-                },
-                ruleLoginForm: {
-                    loginId: [{
-                        required: true,
-                        message: '请填写登录帐号',
-                        trigger: 'blur'
-                    }],
-                    loginPasswd: [{
-                        required: true,
-                        message: '请填写登录密码',
-                        trigger: 'blur'
-                    }, {
-                        type: 'string',
-                        min: 6,
-                        message: '密码长度不能小于6位',
-                        trigger: 'blur'
-                    }],
-                    validCode: [{
-                        required: true,
-                        message: '请填写验证码',
-                        trigger: 'blur'
-                    }, {
-                        type: 'string',
-                        len: 4,
-                        message: '验证码长度4位',
-                        trigger: 'blur'
-                    }]
-                }
-            }
-        },
-        methods: {
-        	accountId : getters.accountId, //
-            onEnter: function(event) {
-                if (event.keyCode === 13) {
-                    LOG("FN: login.onEnter")
-                    this.handleSubmit()
-                }
-            },
-            doNothing: function(){},
-            handleSubmit: function() {
-                var root = this;
-                root.$refs.loginForm.validate(function(valid) {
-                    if (valid) {
-                        root.$http.options.emulateJSON = true;
-                        var formData=qdpJsonCopy(root.loginForm)
-                        formData.loginPasswd=encrypt.encrypt(root.loginForm.loginPasswd)
-                        root.$http.post(qdpPathJoin(ctx, "/system/login.do"), formData).then(function(data) {
-                        	 if (qdpIsSuccess(data)) {
-                        		 root.$message.info('登录成功');
-                        		 qdpSSetItem('account', qdpAjaxDataBody(data));
-                        		 qdpSSetItem('last', new Date().getTime());
-                                 root.$store.dispatch('login');
-                                 root.$store.dispatch('setAccount', qdpAjaxDataBody(data));
-                                 var path = qdpSGetItem('lastPath', '/home');
-                                 qdpSSetItem('lastPath', null);
-                                 root.queryContext(root.accountId());
-                                 Router.push(path); 
-                        	 }else{
-                        		 root.$message.error(qdpAjaxDataBody(data)||'登录不成功');
-                        		 root.changeValidCode();
-                        	 }
-                        }, function(response) {
-                            root.$notify.open({
-                                title: 'Login=>Error',
-                                desc: qdpToString(response),
-                                duration: 0
-                            });
-                            root.changeValidCode();
-                        })
-                    } else {
-                        root.$message.error('表单验证失败!');
-                    }
-                });
-            },
-            changeValidCode: function() {
-                var url = this.validCodeUrl;
-                this.validCodeUrl = url.substring(0, url.indexOf('?')) + '?_=' + qdpRandom();
-            }, //
-			queryContext: function(value){
-				var qc = qdpSGetItem('queryContext',{});
-				if(value===null || value!=null){
-					qc.accountId = value;
-					qdpSSetItem('queryContext', qc);
-				}
-				return qc;
-			},//
-            onPost : function(eventType, arg0, arg1) {
-				LOG("EV: FormItem." + eventType)
-				var root = this;
-				if (eventType.indexOf("on-selection-delete:item-panel") == 0) {
-					root.value.data[root.formItem.name] = qdpProps((root.value.sdata[root.formItem.name] || {}).data, ',');
-					root.updateModel();
-				}
-				// 事件传递
-				var args = [ "on-post", qdpActionName(eventType, 'form-item') ].concat(Array.prototype.slice.call(arguments, 1));
-				root.$emit.apply(root, args.concat([ root ]));
-			}
+      template: template,
+      components: {},
+      mounted: function () {
+        //document.addEventListener('keydown', this.onEnter)
+      },
+      beforeDestroy: function () {
+        //document.removeEventListener('keydown', this.onEnter)
+      },
+      data: function () {
+        return {
+          app_version: app_version || '',
+          validCodeUrl: qdpPathJoin(ctx, "/system/valid.png?_=") + qdpRandom(),
+          loginForm: {
+            loginId: '',
+            loginPasswd: '',
+            validCode: ''
+          },
+          ruleLoginForm: {
+            loginId: [{
+              required: true,
+              message: '请填写登录帐号',
+              trigger: 'blur'
+            }],
+            loginPasswd: [{
+              required: true,
+              message: '请填写登录密码',
+              trigger: 'blur'
+            }, {
+              type: 'string',
+              min: 6,
+              message: '密码长度不能小于6位',
+              trigger: 'blur'
+            }],
+            validCode: [{
+              required: true,
+              message: '请填写验证码',
+              trigger: 'blur'
+            }, {
+              type: 'string',
+              len: 4,
+              message: '验证码长度4位',
+              trigger: 'blur'
+            }]
+          }
         }
+      },
+      methods: {
+        accountId: getters.accountId, //
+        onEnter: function (event) {
+          if (event.keyCode === 13) {
+            LOG("FN: login.onEnter")
+            this.handleSubmit()
+          }
+        },
+        doNothing: function () {
+        },
+        handleSubmit: function () {
+          var root = this;
+          root.$refs.loginForm.validate(function (valid) {
+            if (valid) {
+              root.$http.options.emulateJSON = true;
+              var formData = qdpJsonCopy(root.loginForm)
+              formData.loginPasswd = encrypt.encrypt(root.loginForm.loginPasswd)
+              root.$http.post(qdpPathJoin(ctx, "/system/login.do"), formData).then(function (data) {
+                if (qdpIsSuccess(data)) {
+                  root.$message.info('登录成功');
+                  qdpSSetItem('account', qdpAjaxDataBody(data));
+                  qdpSSetItem('last', new Date().getTime());
+                  root.$store.dispatch('login');
+                  root.$store.dispatch('setAccount', qdpAjaxDataBody(data));
+                  var path = qdpSGetItem('lastPath', '/home');
+                  qdpSSetItem('lastPath', null);
+                  root.queryContext(root.accountId());
+                  Router.push(path);
+                } else {
+                  root.$message.error(qdpAjaxDataBody(data) || '登录不成功');
+                  root.changeValidCode();
+                }
+              }, function (response) {
+                root.$notify.open({
+                  title: 'Login=>Error',
+                  desc: qdpToString(response),
+                  duration: 0
+                });
+                root.changeValidCode();
+              })
+            } else {
+              root.$message.error('表单验证失败!');
+            }
+          });
+        },
+        changeValidCode: function () {
+          var url = this.validCodeUrl;
+          this.validCodeUrl = url.substring(0, url.indexOf('?')) + '?_=' + qdpRandom();
+        }, //
+        queryContext: function (value) {
+          var qc = qdpSGetItem('queryContext', {});
+          if (value === null || value != null) {
+            qc.accountId = value;
+            qdpSSetItem('queryContext', qc);
+          }
+          return qc;
+        },//
+        onPost: function (eventType, arg0, arg1) {
+          LOG("EV: FormItem." + eventType)
+          var root = this;
+          if (eventType.indexOf("on-selection-delete:item-panel") == 0) {
+            root.value.data[root.formItem.name] = qdpProps((root.value.sdata[root.formItem.name] || {}).data, ',');
+            root.updateModel();
+          }
+          // 事件传递
+          var args = ["on-post", qdpActionName(eventType, 'form-item')].concat(Array.prototype.slice.call(arguments, 1));
+          root.$emit.apply(root, args.concat([root]));
+        }
+      }
     }
-})
+  })
+
 
 </script>
+<style>
+  /*登录页面*/
+  .login-form{
+    height: 100%;
+    background: url("../modules/elementui-2.3.5/img/loginbg.jpg");
+    background-size: cover;
+  }
+  .login-form_title{
+    height: 38px;
+    padding: 5px 60px;
+    border-bottom: 1px solid #555555;
+  }
+  .login-form_form{
+    margin: 0 auto;
+    height: calc(100% - 49px - 50px);
+    width: 900px;
+  }
+  .login-form_form-left img{
+    height: 200px;
+    width: auto;
+  }
+  .login-form_form-right{
+    background-color: white;
+    width: 300px;
+    padding: 16px;
+  }
+  .login-form_form-right .el-button{
+    width: 100%;
+  }
+  .login-form_form-title{
+    font-size: 18px;
+    margin-bottom: 16px;
+    color: #777;
+    text-align: center;
+  }
+  .login-form_footer{
+    color: white;
+    opacity: 0.6;
+    text-align: center;
+    height: 50px;
+    line-height: 24px;
+  }
+  .dashboard_text{
+    text-align: center;
+    color: #FFF;
+  }
+  .dashboard_image{
+    height: 100%;
+    background: #f3f4f6 url("../modules/elementui-2.3.5/img/s_r.png") no-repeat center;
+    background-size: contain;
+  }
+  .login-icon{
+    font-size: 20px;
+    font-weight: bolder;
+  }
+</style>

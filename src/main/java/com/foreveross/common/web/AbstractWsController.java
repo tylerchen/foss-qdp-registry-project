@@ -257,6 +257,7 @@ public abstract class AbstractWsController extends BaseController {
         return beanName + "@@" + methodName;
     }
 
+    @SuppressWarnings("resource")
     private List<Method> findMethod(String beanName, String methodName, Object bean) {
         String beanMethodKey = beanMethodKey(beanName, methodName);
         List<Method> list = beanMehtodMap.get(beanMethodKey);

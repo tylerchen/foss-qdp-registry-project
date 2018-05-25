@@ -24,6 +24,7 @@ import java.util.*;
  * @author <a href="mailto:iffiff1@gmail.com">Tyler Chen</a>
  * @since Dec 27, 2017
  */
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class SwaggerJsonUtil {
     private static final SwaggerJsonUtil me = new SwaggerJsonUtil();
 

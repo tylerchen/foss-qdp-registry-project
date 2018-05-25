@@ -42,7 +42,7 @@
 				<el-table-column :fixed="true" prop="target" label="目标" :sortable="false"></el-table-column>
 				<el-table-column :fixed="true" prop="createTime" label="创建时间" :sortable="false"></el-table-column>
 				<el-table-column :fixed="true" prop="type" label="类型">
-					<template scope="scope"><el-tag>{{getOption(scope.row, scope.column)}}</el-tag></template>
+					<template slot-scope="scope"><el-tag>{{getOption(scope.row, scope.column)}}</el-tag></template>
 				</el-table-column>
 			</el-table>
 		</el-row>

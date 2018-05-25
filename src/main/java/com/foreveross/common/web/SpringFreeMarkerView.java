@@ -34,6 +34,7 @@ import java.util.Map;
  */
 public class SpringFreeMarkerView extends FreeMarkerView {
 
+    @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
     public void render(Map<String, ?> model, HttpServletRequest request, HttpServletResponse response)
             throws Exception {

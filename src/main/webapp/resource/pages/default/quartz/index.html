@@ -42,14 +42,14 @@
 				<el-table-column :fixed="true" prop="jobName" label="任务名" :sortable="false"></el-table-column>
 				<el-table-column :fixed="true" prop="jobCron" label="Cron 表达式" :sortable="false"></el-table-column>
 				<el-table-column :fixed="true" prop="recovery" label="失败重做">
-					<template scope="scope"><el-tag>{{getOption(scope.row, scope.column)}}</el-tag></template>
+					<template slot-scope="scope"><el-tag>{{getOption(scope.row, scope.column)}}</el-tag></template>
 				</el-table-column>
 				<el-table-column :fixed="true" prop="durably" label="持久保存">
-					<template scope="scope"><el-tag>{{getOption(scope.row, scope.column)}}</el-tag></template>
+					<template slot-scope="scope"><el-tag>{{getOption(scope.row, scope.column)}}</el-tag></template>
 				</el-table-column>
 				<el-table-column :fixed="true" prop="jobStatus" label="当前状态" :sortable="false"></el-table-column>
 				<el-table-column :fixed="true" prop="status" label="最后执行状态">
-					<template scope="scope"><el-tag>{{getOption(scope.row, scope.column)}}</el-tag></template>
+					<template slot-scope="scope"><el-tag>{{getOption(scope.row, scope.column)}}</el-tag></template>
 				</el-table-column>
 			</el-table>
 		</el-row>

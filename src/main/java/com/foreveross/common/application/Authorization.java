@@ -24,6 +24,7 @@ import java.util.regex.Pattern;
  * @author <a href="mailto:iffiff1@gmail.com">Tyler Chen</a>
  * @since Oct 13, 2017
  */
+@SuppressWarnings("unchecked")
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface Authorization {
