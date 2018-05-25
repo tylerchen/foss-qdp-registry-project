@@ -22,11 +22,12 @@ import net.bull.javamelody.ExMonitoringFilter;
 /**
  * Filtre de servlet pour le monitoring.
  * C'est la classe de ce filtre qui doit être déclarée dans le fichier web.xml de la webapp.
+ *
  * @author Emeric Vernat
  */
 public class JavaMelodyMonitor extends ExMonitoringFilter {
 
-	public JavaMelodyMonitor(String monitoringUrl) {
-		super(monitoringUrl);
-	}
+    public JavaMelodyMonitor(String monitoringUrl) {
+        super(monitoringUrl);
+    }
 }

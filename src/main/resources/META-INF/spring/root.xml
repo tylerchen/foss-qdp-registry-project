@@ -33,7 +33,7 @@
 	<import resource="classpath:META-INF/spring-app/root.xml" />
 	<import resource="classpath:META-INF/spring-auth/root.xml" />
 	<!-- <import resource="classpath:META-INF/spring-openreport/root.xml" /> -->
-	<import resource="classpath:META-INF/spring-tcutil/spring-quartz.xml" />
+	<!-- <import resource="classpath:META-INF/spring-tcutil/spring-quartz.xml" /> -->
 	<!-- <import resource="classpath:META-INF/spring-workflow/root.xml" /> -->
 	<!-- ${workflow.root.xml.import} -->
 	<!-- <import resource="classpath:META-INF/spring-rpc-provider/root.xml" /><import resource="classpath:META-INF/spring-rpc-consumer/root.xml" /> -->

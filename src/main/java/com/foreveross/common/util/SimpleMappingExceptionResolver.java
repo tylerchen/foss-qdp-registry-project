@@ -7,25 +7,26 @@
  ******************************************************************************/
 package com.foreveross.common.util;
 
+import org.springframework.web.servlet.ModelAndView;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.springframework.web.servlet.ModelAndView;
-
 /**
  * SpringMVC请求出现异常的拦截处理。
- * @author <a href="mailto:iffiff1@gmail.com">Tyler Chen</a> 
+ *
+ * @author <a href="mailto:iffiff1@gmail.com">Tyler Chen</a>
  * @since Oct 15, 2017
  */
 public class SimpleMappingExceptionResolver
-		extends org.springframework.web.servlet.handler.SimpleMappingExceptionResolver {
+        extends org.springframework.web.servlet.handler.SimpleMappingExceptionResolver {
 
-	@Override
-	protected ModelAndView doResolveException(HttpServletRequest request, HttpServletResponse response, Object handler,
-			Exception ex) {
-		if (ex != null) {
-			ex.printStackTrace();
-		}
-		return super.doResolveException(request, response, handler, ex);
-	}
+    @Override
+    protected ModelAndView doResolveException(HttpServletRequest request, HttpServletResponse response, Object handler,
+                                              Exception ex) {
+        if (ex != null) {
+            ex.printStackTrace();
+        }
+        return super.doResolveException(request, response, handler, ex);
+    }
 }

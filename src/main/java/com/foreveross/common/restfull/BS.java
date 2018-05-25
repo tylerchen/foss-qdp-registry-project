@@ -7,113 +7,112 @@
  ******************************************************************************/
 package com.foreveross.common.restfull;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
 /**
- * @author <a href="mailto:iffiff1@gmail.com">Tyler Chen</a> 
+ * @author <a href="mailto:iffiff1@gmail.com">Tyler Chen</a>
  * @since Dec 18, 2017
  */
 public interface BS {
 
-	public static enum Method {
-		/**
-		 * GET: 是幂等的，多次执行不会改变数据。
-		 */
-		GET, //
-		/**
-		 * POST: 创建对象。（产生URI）。
-		 */
-		POST, //
-		/**
-		 * PUT: 修改对象。（不产生URI）
-		 */
-		PUT, //
-		/**
-		 * DELETE: 删除对象。（减少URI）
-		 */
-		DELETE;
-		/**
-		 * convert method name to Method.
-		 * @param method
-		 * @return
-		 * @author <a href="mailto:iffiff1@gmail.com">Tyler Chen</a> 
-		 * @since Dec 19, 2017
-		 */
-		public static Method get(String method) {
-			for (Method m : Method.values()) {
-				if (m.name().equalsIgnoreCase(method)) {
-					return m;
-				}
-			}
-			return null;
-		}
-	}
+    public static enum Method {
+        /**
+         * GET: 是幂等的，多次执行不会改变数据。
+         */
+        GET, //
+        /**
+         * POST: 创建对象。（产生URI）。
+         */
+        POST, //
+        /**
+         * PUT: 修改对象。（不产生URI）
+         */
+        PUT, //
+        /**
+         * DELETE: 删除对象。（减少URI）
+         */
+        DELETE;
 
-	public static enum Type {
-		/**
-		 * XSTREAM: 输入数据类型为XSTREAM。
-		 */
-		XSTREAM, //
-		/**
-		 * JSON: 输入数据类型为JSON。
-		 */
-		JSON
-	}
+        /**
+         * convert method name to Method.
+         *
+         * @param method
+         * @return
+         * @author <a href="mailto:iffiff1@gmail.com">Tyler Chen</a>
+         * @since Dec 19, 2017
+         */
+        public static Method get(String method) {
+            for (Method m : Method.values()) {
+                if (m.name().equalsIgnoreCase(method)) {
+                    return m;
+                }
+            }
+            return null;
+        }
+    }
 
-	/**
-	 * 限制：路径参数中如果要转换为VO中属性时，VO属性是复杂类型的包括数据，无法进行转换（无法把String转换成数组或复杂类型）。
-	 * @author <a href="mailto:iffiff1@gmail.com">Tyler Chen</a> 
-	 * @since Dec 18, 2017
-	 */
-	@Target({ ElementType.TYPE, ElementType.METHOD })
-	@Retention(RetentionPolicy.RUNTIME)
-	@Documented
-	public @interface Path {
+    public static enum Type {
+        /**
+         * XSTREAM: 输入数据类型为XSTREAM。
+         */
+        XSTREAM, //
+        /**
+         * JSON: 输入数据类型为JSON。
+         */
+        JSON
+    }
 
-		String[]path()
+    /**
+     * 限制：路径参数中如果要转换为VO中属性时，VO属性是复杂类型的包括数据，无法进行转换（无法把String转换成数组或复杂类型）。
+     *
+     * @author <a href="mailto:iffiff1@gmail.com">Tyler Chen</a>
+     * @since Dec 18, 2017
+     */
+    @Target({ElementType.TYPE, ElementType.METHOD})
+    @Retention(RetentionPolicy.RUNTIME)
+    @Documented
+    public @interface Path {
 
-		default {};
+        String[] path()
 
-		Method method()
+                default {};
 
-		default Method.GET;
+        Method method()
 
-		String nullChar()
+                default Method.GET;
 
-		default "-";
+        String nullChar()
 
-		String beanName() default "";
-	}
+                default "-";
 
-	/**
-	 * @author <a href="mailto:iffiff1@gmail.com">Tyler Chen</a> 
-	 * @since Dec 18, 2017
-	 */
-	@Target({ ElementType.PARAMETER, ElementType.METHOD, ElementType.FIELD })
-	@Retention(RetentionPolicy.RUNTIME)
-	@Documented
-	public @interface Prop {
+        String beanName() default "";
+    }
 
-		String value();
+    /**
+     * @author <a href="mailto:iffiff1@gmail.com">Tyler Chen</a>
+     * @since Dec 18, 2017
+     */
+    @Target({ElementType.PARAMETER, ElementType.METHOD, ElementType.FIELD})
+    @Retention(RetentionPolicy.RUNTIME)
+    @Documented
+    public @interface Prop {
 
-		String defaultValue() default "";
-	}
+        String value();
 
-	/**
-	 * @author <a href="mailto:iffiff1@gmail.com">Tyler Chen</a> 
-	 * @since Dec 18, 2017
-	 */
-	@Target({ ElementType.PARAMETER, ElementType.METHOD, ElementType.FIELD })
-	@Retention(RetentionPolicy.RUNTIME)
-	@Documented
-	public @interface Param {
+        String defaultValue() default "";
+    }
 
-		String[]value() default {};
+    /**
+     * @author <a href="mailto:iffiff1@gmail.com">Tyler Chen</a>
+     * @since Dec 18, 2017
+     */
+    @Target({ElementType.PARAMETER, ElementType.METHOD, ElementType.FIELD})
+    @Retention(RetentionPolicy.RUNTIME)
+    @Documented
+    public @interface Param {
 
-		Prop[]props() default {};
-	}
+        String[] value() default {};
+
+        Prop[] props() default {};
+    }
 }

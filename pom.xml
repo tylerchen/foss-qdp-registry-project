@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.foreveross</groupId>
 	<artifactId>foss-qdp-registry-project</artifactId>
-	<version>4.0.0</version>
+	<version>1.0.0</version>
 	<packaging>war</packaging>
 	<name>${project.groupId}-${project.artifactId}-${project.version}</name>
 	<description>
@@ -164,6 +164,14 @@
 			<artifactId>spring-cloud-starter-eureka-server</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-feign</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.github.openfeign</groupId>
+			<artifactId>feign-okhttp</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-webmvc</artifactId>
 			<version>${version.spring}</version>
@@ -220,7 +228,7 @@
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpcore</artifactId>
-			<version>4.3</version>
+			<version>4.4.9</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-fileupload</groupId>
@@ -501,7 +509,7 @@
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpmime</artifactId>
-			<version>4.3.1</version>
+			<version>4.5.5</version>
 		</dependency>
 
 		<dependency>
@@ -593,10 +601,8 @@
 			<artifactId>springfox-swagger-ui</artifactId>
 			<version>2.7.0</version>
 		</dependency>
-		<!-- <dependency>
-			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-starter-consul-discovery</artifactId>
-		</dependency> -->
+		<!-- <dependency> <groupId>org.springframework.cloud</groupId> <artifactId>spring-cloud-starter-consul-discovery</artifactId> 
+			</dependency> -->
 	</dependencies>
 
 	<build>

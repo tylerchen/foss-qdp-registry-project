@@ -7,10 +7,6 @@
  ******************************************************************************/
 package com.foreveross.extension.datasource;
 
-import java.lang.reflect.Method;
-import java.sql.Connection;
-import java.sql.SQLException;
-
 import org.apache.commons.lang3.StringUtils;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.Aspect;
@@ -22,6 +18,10 @@ import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.annotation.Order;
 import org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.lang.reflect.Method;
+import java.sql.Connection;
+import java.sql.SQLException;
 
 /**
  * <pre>
@@ -41,14 +41,14 @@ import org.springframework.transaction.annotation.Transactional;
  * 		class="org.springframework.jdbc.datasource.DataSourceTransactionManager"&gt;
  * 		&lt;property name="dataSource" ref="routingDataSource" /&gt;
  * 	&lt;/bean&gt;
- * 
+ *
  * 		配置动态数据源路由，根据事务管理器的名称来决定使用哪个数据源，事务名称及数据源对应下面配置，默认为：transactionManager（必须），
  * 		把其他数据源的引用都改为动态数据源，如：&lt;property name="dataSource" ref="routingDataSource" /&gt;
  * 		在使用非默认数据源需要在Application实现中配置事务管理器名称，如：
- * 		@Named("functionApplication")
+ *        @Named("functionApplication")
  * 		@Transactional("transactionManager2")
- * 		public class FunctionApplicationImpl implements FunctionApplication { 
- * 
+ * 		public class FunctionApplicationImpl implements FunctionApplication {
+ *
  * 	&lt;bean id="routingDataSource" class="com.foreveross.common.MutiRoutingDataSource"&gt;
  * 		&lt;property name="targetDataSources"&gt;
  * 			&lt;map key-type="java.lang.String"&gt;
@@ -58,53 +58,54 @@ import org.springframework.transaction.annotation.Transactional;
  * 		&lt;/property&gt;
  * 	&lt;/bean&gt;
  * </pre>
- * @author <a href="mailto:iffiff1@gmail.com">Tyler Chen</a> 
+ *
+ * @author <a href="mailto:iffiff1@gmail.com">Tyler Chen</a>
  * @since Sep 10, 2016
  */
 @Aspect
 @Order(0)
 public class MutiRoutingDataSource extends AbstractRoutingDataSource {
 
-	private static final ThreadLocal<String> transactionName = new ThreadLocal<String>();
+    private static final ThreadLocal<String> transactionName = new ThreadLocal<String>();
 
-	@Pointcut("@within(org.springframework.transaction.annotation.Transactional)")
-	public void getTransactoinNamePointcut() {
-	}
+    @Pointcut("@within(org.springframework.transaction.annotation.Transactional)")
+    public void getTransactoinNamePointcut() {
+    }
 
-	@Before("getTransactoinNamePointcut()")
-	public void before(JoinPoint jp) {
-		try {
-			MethodInvocationProceedingJoinPoint mipj = (MethodInvocationProceedingJoinPoint) jp;
-			Object target = mipj.getTarget();
-			MethodSignature ms = (MethodSignature) mipj.getSignature();
-			Method method = ms.getMethod();
-			Transactional annotation = AnnotationUtils.findAnnotation(method, Transactional.class);
-			if (annotation != null) {
-				transactionName.set(annotation.value());
-			} else {
-				annotation = AnnotationUtils.findAnnotation(target.getClass(), Transactional.class);
-				if (annotation != null) {
-					transactionName.set(annotation.value());
-				}
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
+    @Before("getTransactoinNamePointcut()")
+    public void before(JoinPoint jp) {
+        try {
+            MethodInvocationProceedingJoinPoint mipj = (MethodInvocationProceedingJoinPoint) jp;
+            Object target = mipj.getTarget();
+            MethodSignature ms = (MethodSignature) mipj.getSignature();
+            Method method = ms.getMethod();
+            Transactional annotation = AnnotationUtils.findAnnotation(method, Transactional.class);
+            if (annotation != null) {
+                transactionName.set(annotation.value());
+            } else {
+                annotation = AnnotationUtils.findAnnotation(target.getClass(), Transactional.class);
+                if (annotation != null) {
+                    transactionName.set(annotation.value());
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
-	@Override
-	protected Object determineCurrentLookupKey() {
-		String str = transactionName.get();
-		return StringUtils.defaultIfBlank(str, "transactionManager");
-	}
+    @Override
+    protected Object determineCurrentLookupKey() {
+        String str = transactionName.get();
+        return StringUtils.defaultIfBlank(str, "transactionManager");
+    }
 
-	@Override
-	public Connection getConnection() throws SQLException {
-		return determineTargetDataSource().getConnection();
-	}
+    @Override
+    public Connection getConnection() throws SQLException {
+        return determineTargetDataSource().getConnection();
+    }
 
-	@Override
-	public Connection getConnection(String username, String password) throws SQLException {
-		return determineTargetDataSource().getConnection(username, password);
-	}
+    @Override
+    public Connection getConnection(String username, String password) throws SQLException {
+        return determineTargetDataSource().getConnection(username, password);
+    }
 }
