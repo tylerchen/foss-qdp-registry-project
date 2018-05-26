@@ -142,7 +142,7 @@ public class UriManager {
                         break;
                     }
                     argsTypes.add(arg);
-                    final String value = argMap.get(methodPrefix + ".arg" + i + ".value");
+                    final String argProps = argMap.get(methodPrefix + ".arg" + i + ".props");
                     String fieldStartPrefix = methodPrefix + ".arg" + i + ".field.";
                     final List<BS.Prop> fieldList = new ArrayList<BS.Prop>();
                     for (Entry<String, String> fieldEntry : argMap.entrySet()) {
@@ -174,7 +174,7 @@ public class UriManager {
                         }
 
                         public String[] value() {
-                            return StringUtils.split(value, ',');
+                            return StringUtils.split(argProps, ',');
                         }
 
                         public BS.Prop[] props() {

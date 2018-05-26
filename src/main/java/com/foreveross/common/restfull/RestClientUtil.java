@@ -32,7 +32,7 @@ public class RestClientUtil {
     /**
      * 解释rest client的配置。
      *
-     * @param map
+     * @param props
      * @author <a href="mailto:iffiff1@gmail.com">Tyler Chen</a>
      * @since Feb 22, 2018
      */

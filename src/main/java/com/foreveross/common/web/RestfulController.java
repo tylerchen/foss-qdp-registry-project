@@ -72,7 +72,7 @@ public class RestfulController extends BaseController {
                     || (!isJson && !isXml);
 
             //设置输出的格式：xml-xstream, json。
-            Class<?> xmlOrJsonHelper = accept != null && accept.indexOf("xml") > -1 ? XStreamHelper.class
+            Class<?> xmlOrJsonHelper = accept != null && !StringUtils.contains(accept, "text") && accept.indexOf("xml") > -1 ? XStreamHelper.class
                     : GsonHelper.class;
 
             //表单数据，及parameter数据。
