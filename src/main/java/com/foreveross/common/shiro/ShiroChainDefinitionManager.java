@@ -27,7 +27,7 @@ import java.util.Map;
  */
 public class ShiroChainDefinitionManager {
 
-    private static final org.iff.infra.util.Logger.Log Logger = org.iff.infra.util.Logger.get("FOSS-SHIRO");
+    private static final org.iff.infra.util.Logger.Log Logger = org.iff.infra.util.Logger.get("FOSS.SHIRO");
 
     // 注意/r/n前不能有空格
     private static final String CRLF = "\r\n";

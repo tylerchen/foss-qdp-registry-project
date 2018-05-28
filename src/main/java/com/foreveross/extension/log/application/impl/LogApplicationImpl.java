@@ -34,7 +34,7 @@ import java.util.TimerTask;
 @Named("logApplication")
 public class LogApplicationImpl implements LogApplication, InitializingBean {
 
-    private static final org.iff.infra.util.Logger.Log Logger = org.iff.infra.util.Logger.get("LOG");
+    private static final org.iff.infra.util.Logger.Log Logger = org.iff.infra.util.Logger.get("FOSS.LOGA");
 
     /**
      * 保存日志，1分钟保存一次。

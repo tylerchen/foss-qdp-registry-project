@@ -28,7 +28,7 @@ import java.util.Date;
  */
 @Aspect
 public class LoggerBean {
-    private static final Logger.Log logger = Logger.get("TRACE");
+    private static final Logger.Log logger = Logger.get("FOSS.TRACE");
 
     @Pointcut("@within(org.springframework.transaction.annotation.Transactional) || @within(javax.inject.Named)")
     public void logPointcut() {

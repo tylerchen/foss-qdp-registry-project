@@ -76,7 +76,7 @@ public class MonitorController extends BaseController {
     }
 
     public class DruidMonitor {
-        private Log LOG = Logger.get("DRUID");
+        private Log LOG = Logger.get("FOSS.DRUID");
 
         public static final String SESSION_USER_KEY = "druid-user";
         public static final String PARAM_NAME_USERNAME = "loginUsername";

@@ -36,7 +36,7 @@ import java.io.IOException;
  */
 public class ShiroAuthAccessControlFilter extends AdviceFilter implements OnceValidAdvice {
 
-    private static final org.iff.infra.util.Logger.Log Logger = org.iff.infra.util.Logger.get("FOSS-SHIRO");
+    private static final org.iff.infra.util.Logger.Log Logger = org.iff.infra.util.Logger.get("FOSS.SHIRO");
 
     @Inject
     @Named("systemApplication")

@@ -36,7 +36,7 @@ import java.util.Locale;
  */
 public class ShiroAccessControlFilter extends AdviceFilter implements OnceValidAdvice {
 
-    private static final org.iff.infra.util.Logger.Log Logger = org.iff.infra.util.Logger.get("FOSS-SHIRO");
+    private static final org.iff.infra.util.Logger.Log Logger = org.iff.infra.util.Logger.get("FOSS.SHIRO");
 
     public boolean preHandle(ServletRequest servletRequest, ServletResponse servletResponse) throws Exception {
         HttpServletRequest request = (HttpServletRequest) servletRequest;

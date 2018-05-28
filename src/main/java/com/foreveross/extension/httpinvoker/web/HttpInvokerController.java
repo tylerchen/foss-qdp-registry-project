@@ -37,7 +37,7 @@ import java.util.concurrent.locks.ReentrantLock;
 @Controller
 @RequestMapping("/rpc/http")
 public class HttpInvokerController extends BaseController {
-    private static final org.iff.infra.util.Logger.Log Logger = org.iff.infra.util.Logger.get("HttpInvoker");
+    private static final org.iff.infra.util.Logger.Log Logger = org.iff.infra.util.Logger.get("FOSS.RPC");
     /**
      * using lock when register spring bean.
      */

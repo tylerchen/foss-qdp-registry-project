@@ -31,7 +31,7 @@ import java.io.IOException;
  */
 public class ShiroTraceIdFilter extends AdviceFilter {
 
-    private static final org.iff.infra.util.Logger.Log Logger = org.iff.infra.util.Logger.get("FOSS-SHIRO");
+    private static final org.iff.infra.util.Logger.Log Logger = org.iff.infra.util.Logger.get("FOSS.SHIRO");
 
     protected boolean preHandle(ServletRequest servletRequest, ServletResponse servletResponse) throws Exception {
         HttpServletRequest request = (HttpServletRequest) servletRequest;

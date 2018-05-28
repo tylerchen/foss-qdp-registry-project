@@ -29,7 +29,7 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class ShiroHelper {
 
-    private static final org.iff.infra.util.Logger.Log Logger = org.iff.infra.util.Logger.get("FOSS-SHIRO");
+    private static final org.iff.infra.util.Logger.Log Logger = org.iff.infra.util.Logger.get("FOSS.SHIRO");
 
     private static final ReentrantLock LOCK = new ReentrantLock();
 
