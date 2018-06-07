@@ -150,13 +150,8 @@ public class UrlWildcardPermission implements Permission, Serializable {
         }
         UrlWildcardPermission other = (UrlWildcardPermission) obj;
         if (permission == null) {
-            if (other.permission != null) {
-                return false;
-            }
-        } else if (!permission.equals(other.permission)) {
-            return false;
-        }
-        return true;
+            return other.permission == null;
+        } else return permission.equals(other.permission);
     }
 
 }

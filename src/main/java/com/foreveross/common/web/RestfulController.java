@@ -22,7 +22,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Enumeration;
@@ -49,7 +48,6 @@ public class RestfulController extends BaseController {
      * @param request
      * @param response
      * @return 返回数据是以com.foreveross.common.ResultBean结构返回: {header: Map, body: Object}。
-     * @throws IOException
      * @author <a href="mailto:iffiff1@gmail.com">Tyler Chen</a>
      * @since Jul 19, 2016
      */
@@ -60,7 +58,7 @@ public class RestfulController extends BaseController {
     public String rest(@RequestBody(required = false) String body,
                        @RequestHeader(name = "Accept", required = false) String accept,
                        @RequestHeader(name = "Content-Type", required = false) String contentType, HttpServletRequest request,
-                       HttpServletResponse response) throws IOException {
+                       HttpServletResponse response) {
         try {
             String requestURI = request.getRequestURI();
             String reportPath = StringUtils.substringAfter(requestURI, "/rest/");

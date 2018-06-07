@@ -87,7 +87,7 @@ public class OkHttpRestClient implements RestClient {
         return (Map) headers.toMultimap();
     }
 
-    private static Response.Body toBody(final ResponseBody input) throws IOException {
+    private static Response.Body toBody(final ResponseBody input) {
         if (input == null || input.contentLength() == 0) {
             if (input != null) {
                 input.close();
@@ -100,7 +100,7 @@ public class OkHttpRestClient implements RestClient {
         return new Response.Body() {
 
             @Override
-            public void close() throws IOException {
+            public void close() {
                 input.close();
             }
 
@@ -115,12 +115,12 @@ public class OkHttpRestClient implements RestClient {
             }
 
             @Override
-            public InputStream asInputStream() throws IOException {
+            public InputStream asInputStream() {
                 return input.byteStream();
             }
 
             @Override
-            public Reader asReader() throws IOException {
+            public Reader asReader() {
                 return input.charStream();
             }
         };

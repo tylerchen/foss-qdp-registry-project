@@ -36,7 +36,7 @@ public class ShiroOnceValidAccessControlFilter extends AdviceFilter implements O
 
     private List<OnceValidAdvice> onceFilterChains = new ArrayList<OnceValidAdvice>();
 
-    public boolean preHandle(ServletRequest servletRequest, ServletResponse servletResponse) throws Exception {
+    public boolean preHandle(ServletRequest servletRequest, ServletResponse servletResponse) {
         HttpServletRequest request = (HttpServletRequest) servletRequest;
         HttpServletResponse response = (HttpServletResponse) servletResponse;
         String url = StringUtils.removeStart(request.getRequestURI(), request.getContextPath());

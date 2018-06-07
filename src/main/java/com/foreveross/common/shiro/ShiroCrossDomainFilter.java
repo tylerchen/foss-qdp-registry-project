@@ -27,7 +27,7 @@ public class ShiroCrossDomainFilter extends AdviceFilter {
 
     private static final org.iff.infra.util.Logger.Log Logger = org.iff.infra.util.Logger.get("FOSS.SHIRO");
 
-    protected boolean preHandle(ServletRequest servletRequest, ServletResponse servletResponse) throws Exception {
+    protected boolean preHandle(ServletRequest servletRequest, ServletResponse servletResponse) {
         HttpServletRequest request = (HttpServletRequest) servletRequest;
         HttpServletResponse response = (HttpServletResponse) servletResponse;
 

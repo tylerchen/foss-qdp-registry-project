@@ -17,7 +17,7 @@ import java.lang.annotation.*;
  */
 public interface BS {
 
-    public static enum Method {
+    enum Method {
         /**
          * GET: 是幂等的，多次执行不会改变数据。
          */
@@ -53,7 +53,7 @@ public interface BS {
         }
     }
 
-    public static enum Type {
+    enum Type {
         /**
          * XSTREAM: 输入数据类型为XSTREAM。
          */
@@ -74,7 +74,7 @@ public interface BS {
     @Target({ElementType.TYPE, ElementType.METHOD})
     @Retention(RetentionPolicy.RUNTIME)
     @Documented
-    public @interface Path {
+    @interface Path {
 
         String[] path()
 
@@ -100,7 +100,7 @@ public interface BS {
     @Target({ElementType.PARAMETER, ElementType.METHOD, ElementType.FIELD})
     @Retention(RetentionPolicy.RUNTIME)
     @Documented
-    public @interface Prop {
+    @interface Prop {
 
         String value();
 
@@ -116,7 +116,7 @@ public interface BS {
     @Target({ElementType.PARAMETER, ElementType.METHOD, ElementType.FIELD})
     @Retention(RetentionPolicy.RUNTIME)
     @Documented
-    public @interface Param {
+    @interface Param {
 
         String[] value() default {};
 

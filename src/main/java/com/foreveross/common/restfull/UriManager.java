@@ -476,6 +476,10 @@ public class UriManager {
         }
     }
 
+    public static Map<String, Map<String, UriTemplate>> getUriTemplates() {
+        return URI;
+    }
+
     public static class UriTemplate {
 
         /**
@@ -785,6 +789,10 @@ public class UriManager {
             return method;
         }
 
+        public void setMethod(Method method) {
+            this.method = method;
+        }
+
         public Annotation[][] getParameterAnnotations() {
             return annotations;
         }
@@ -808,10 +816,6 @@ public class UriManager {
 
         public void setAnnotations(Annotation[][] annotations) {
             this.annotations = annotations;
-        }
-
-        public void setMethod(Method method) {
-            this.method = method;
         }
 
         public String toString() {

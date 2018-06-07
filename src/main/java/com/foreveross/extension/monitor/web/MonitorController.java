@@ -49,7 +49,7 @@ public class MonitorController extends BaseController {
     private DruidMonitor monitor;
 
     @RequestMapping("/druid/**")
-    public void druid(ModelMap modelMap, HttpServletRequest request, HttpServletResponse response) throws IOException {
+    public void druid(ModelMap modelMap, HttpServletRequest request, HttpServletResponse response) {
         try {
             if (monitor == null) {
                 synchronized (this) {
@@ -64,8 +64,7 @@ public class MonitorController extends BaseController {
     }
 
     @RequestMapping("/javamelody")
-    public void javamelody(ModelMap modelMap, HttpServletRequest request, HttpServletResponse response)
-            throws IOException {
+    public void javamelody(ModelMap modelMap, HttpServletRequest request, HttpServletResponse response) {
         try {
             JavaMelodyMonitor monitor2 = new JavaMelodyMonitor(request.getContextPath() + "/monitor/javamelody");
             monitor2.init(request, response);
@@ -114,7 +113,7 @@ public class MonitorController extends BaseController {
                     "support/http/resources");
         }
 
-        public void init() throws ServletException {
+        public void init() {
             initAuthEnv();
             initService();
         }
@@ -209,7 +208,7 @@ public class MonitorController extends BaseController {
         }
 
         protected void returnResourceFile(String fileName, String uri, HttpServletResponse response)
-                throws ServletException, IOException {
+                throws IOException {
 
             String filePath = getFilePath(fileName);
 

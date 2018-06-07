@@ -137,7 +137,7 @@
         <dependency>
             <groupId>org.iff</groupId>
             <artifactId>tc-util-project</artifactId>
-            <version>1.0.24</version>
+            <version>1.0.26</version>
         </dependency>
         <!-- iff infra end -->
         <!-- javax.servlet -->
@@ -170,6 +170,11 @@
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-sleuth-zipkin</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka-clients</artifactId>
+            <version>1.1.0</version>
         </dependency>
         <dependency>
             <groupId>io.github.openfeign</groupId>

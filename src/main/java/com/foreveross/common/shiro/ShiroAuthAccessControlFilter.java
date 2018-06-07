@@ -42,7 +42,7 @@ public class ShiroAuthAccessControlFilter extends AdviceFilter implements OnceVa
     @Named("systemApplication")
     SystemApplication systemApplication;
 
-    public boolean preHandle(ServletRequest servletRequest, ServletResponse servletResponse) throws Exception {
+    public boolean preHandle(ServletRequest servletRequest, ServletResponse servletResponse) {
         try {
             HttpServletRequest request = (HttpServletRequest) servletRequest;
 
@@ -92,11 +92,7 @@ public class ShiroAuthAccessControlFilter extends AdviceFilter implements OnceVa
             //					}
             //				}
             //			}
-            if (valid) {
-                return true;
-            } else {
-                return false;
-            }
+            return valid;
         } catch (Exception e) {
             return false;
         }

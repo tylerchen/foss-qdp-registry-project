@@ -33,7 +33,7 @@ public class ShiroTraceIdFilter extends AdviceFilter {
 
     private static final org.iff.infra.util.Logger.Log Logger = org.iff.infra.util.Logger.get("FOSS.SHIRO");
 
-    protected boolean preHandle(ServletRequest servletRequest, ServletResponse servletResponse) throws Exception {
+    protected boolean preHandle(ServletRequest servletRequest, ServletResponse servletResponse) {
         HttpServletRequest request = (HttpServletRequest) servletRequest;
         HttpServletResponse response = (HttpServletResponse) servletResponse;
         String url = "";
@@ -48,6 +48,9 @@ public class ShiroTraceIdFilter extends AdviceFilter {
         }
         {
             ip = HttpHelper.getRemoteIpAddr(request);
+            if (ip.startsWith("0:0:0:0:0:0:0:") || ip.startsWith("127.0.0.")) {
+                ip = "127.0.0.1";
+            }
         }
         {
             traceId = StringUtils.defaultIfBlank(request.getHeader("TRACE_ID"), org.iff.infra.util.Logger.getTraceId());

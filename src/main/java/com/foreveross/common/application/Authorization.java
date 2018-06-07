@@ -28,9 +28,9 @@ import java.util.regex.Pattern;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface Authorization {
-    public static final String RANGE_SELF = "SELF";
-    public static final String RANGE_DEPARTMENT = "DEPARTMENT";
-    public static final String RANGE_ORGANIZATION = "ORGANIZATION";
+    String RANGE_SELF = "SELF";
+    String RANGE_DEPARTMENT = "DEPARTMENT";
+    String RANGE_ORGANIZATION = "ORGANIZATION";
 
     /**
      * 是否匿名访问，执行顺序：【01】
@@ -77,7 +77,7 @@ public @interface Authorization {
      */
     String mvelScript() default "";
 
-    public static class Util {
+    class Util {
         public static boolean hasAuthorization(Authorization authorization, String beanName, boolean canAnonymous,
                                                List<String> roles) {
             {//是否匿名访问，执行顺序：【01】

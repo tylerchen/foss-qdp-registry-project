@@ -56,7 +56,7 @@ public class RestClientFactoryBean implements FactoryBean<Object> {
      */
     private Object proxyObject;
 
-    public Object getObject() throws Exception {
+    public Object getObject() {
         if (proxyObject == null) {
             proxyObject = Proxy.newProxyInstance(RestClient.class.getClassLoader(), new Class<?>[]{type},
                     new RestClientInvocationHandler(this));
@@ -180,7 +180,7 @@ public class RestClientFactoryBean implements FactoryBean<Object> {
                     Method getter = entry.getValue();
                     Object invoke = args[i];
                     if (getter != null) {
-                        invoke = getter.invoke(args[i], new Object[0]);
+                        invoke = getter.invoke(args[i]);
                     }
                     Object object = invoke;
                     if (object == null) {

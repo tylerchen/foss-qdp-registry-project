@@ -22,7 +22,7 @@ import javax.servlet.ServletResponse;
  */
 public interface OnceValidAdvice {
 
-    public static final String REQUEST_MARK = "OnceValidAdvice";
+    String REQUEST_MARK = "OnceValidAdvice";
 
     boolean preHandle(ServletRequest request, ServletResponse response) throws Exception;
 }

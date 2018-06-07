@@ -670,7 +670,7 @@ public class SwaggerJsonUtil {
                 if (getSessionCurrent() != null && getSessionKey() != null) {
                     if (getSessionCurrent() instanceof List && getSessionCurrentList().size() > 0) {
                         if (getSessionParent() instanceof List) {
-                            ((List<Object>) getSessionParent()).addAll((List<Object>) getSessionCurrentList());
+                            ((List<Object>) getSessionParent()).addAll(getSessionCurrentList());
                         } else {
                             ((Map<String, Object>) getSessionParent()).put(getSessionKey(), getSessionCurrent());
                         }

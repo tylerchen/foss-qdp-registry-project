@@ -132,7 +132,7 @@ public final class LBClient extends AbstractLoadBalancerAwareClient<LBClient.Rib
         }
 
         @Override
-        public Object getPayload() throws ClientException {
+        public Object getPayload() {
             return response.body();
         }
 

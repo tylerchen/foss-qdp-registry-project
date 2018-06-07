@@ -15,6 +15,7 @@ import com.foreveross.extension.monitor.application.MonitorApplication;
 import net.sf.ehcache.CacheManager;
 import org.apache.commons.lang3.StringUtils;
 import org.iff.infra.util.*;
+import org.iff.infra.util.log.LogKafkaHelper;
 import org.iff.infra.util.spring.SpringContextHelper;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
@@ -89,7 +90,7 @@ public class ProjectInitializeBean
      * @see InitializingBean#afterPropertiesSet()
      * @since Mar 20, 2018
      */
-    public void afterPropertiesSet() throws Exception {
+    public void afterPropertiesSet() {
 
     }
 
@@ -104,6 +105,14 @@ public class ProjectInitializeBean
     @SuppressWarnings("resource")
     public void onApplicationEvent(ContextRefreshedEvent event) {
         if (!hasRefresh && (hasRefresh = true)) {
+            {//启动 Kafka 日志
+                String brokers = ConstantBean.getProperty("log.kafka.brokers");
+                String topic = ConstantBean.getProperty("log.kafka.topic");
+                if (StringUtils.isNotBlank(brokers) && StringUtils.isNotBlank(topic)) {
+                    LogKafkaHelper.init(brokers, topic);
+                    LogKafkaHelper.start();
+                }
+            }
             {//加载数据库I18N
                 ((SystemApplication) SpringContextHelper.getBean("systemApplication")).initI18n();
             }

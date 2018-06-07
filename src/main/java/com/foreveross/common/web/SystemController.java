@@ -10,6 +10,7 @@ package com.foreveross.common.web;
 
 import com.foreveross.common.ConstantBean;
 import com.foreveross.common.ResultBean;
+import com.foreveross.common.application.ApplicationInfoApplication;
 import com.foreveross.common.application.ImageCaptchaApplication;
 import com.foreveross.common.application.SystemApplication;
 import com.foreveross.common.shiro.JWTTokenHelper;
@@ -18,24 +19,21 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.subject.Subject;
-import org.iff.infra.util.Logger;
-import org.iff.infra.util.MD5Helper;
-import org.iff.infra.util.RSAHelper;
-import org.iff.infra.util.SocketHelper;
+import org.iff.infra.util.*;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.io.OutputStream;
+import java.util.LinkedHashMap;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * 登录基础功能：登录、登出、验证码。
@@ -55,6 +53,10 @@ public class SystemController extends BaseController {
     @Named("systemApplication")
     SystemApplication systemApplication;
 
+
+    @Inject
+    ApplicationInfoApplication applicationInfoApplication;
+
     Boolean validCode = null;
 
     /**
@@ -73,7 +75,7 @@ public class SystemController extends BaseController {
         if (!validCode) {
             return true;
         }
-        String code = (String) request.getParameter("validCode");
+        String code = request.getParameter("validCode");
         return imageCaptchaApplication.validateForID(request.getSession().getId(), code);
     }
 
@@ -232,8 +234,7 @@ public class SystemController extends BaseController {
     }
 
     @RequestMapping("/valid.png")
-    public void validateImage(ModelMap modelMap, HttpServletRequest request, HttpServletResponse response)
-            throws IOException {
+    public void validateImage(ModelMap modelMap, HttpServletRequest request, HttpServletResponse response) {
         try {
             byte[] image = imageCaptchaApplication.getImageForID(request.getSession().getId());
             /*禁止图像缓存*/
@@ -263,5 +264,121 @@ public class SystemController extends BaseController {
         } catch (Exception e) {
             return error(e);
         }
+    }
+
+    @RequestMapping("/info")
+    public void info(@RequestBody(required = false) String body,
+                     @RequestHeader(name = "Accept", required = false) String accept,
+                     @RequestHeader(name = "Content-Type", required = false) String contentType, HttpServletRequest request,
+                     HttpServletResponse response) {
+        try {
+            //检测输入数据的类型。
+            boolean isJson = StringUtils.contains(contentType, "application/json");
+            boolean isXml = StringUtils.contains(contentType, "application/xml");
+            boolean isForm = StringUtils.contains(contentType, "application/x-www-form-urlencoded")
+                    || (!isJson && !isXml);
+
+            //设置输出的格式：xml-xstream, json。
+            boolean isHtml = accept != null && StringUtils.contains(accept, "text/html");
+            Class<?> xmlOrJsonHelper = accept != null && !StringUtils.contains(accept, "text") && accept.indexOf("xml") > -1 ? XStreamHelper.class
+                    : GsonHelper.class;
+
+            Map<String, Map<String, String>> map = new LinkedHashMap<String, Map<String, String>>();
+            map.put("restConfig", applicationInfoApplication.restConfig());
+            try {
+                if (SecurityUtils.getSubject().isAuthenticated()) {
+                    map.put("applicationConfig",
+                            applicationInfoApplication.applicationConfig());
+                    map.put("systemConfig",
+                            applicationInfoApplication.systemConfig());
+                    map.put("springBootConfig",
+                            applicationInfoApplication.springBootConfig());
+                }
+            } catch (Exception e) {
+            }
+            if (isHtml) {
+                response.setContentType("text/html;charset=UTF-8");
+                String html = toInfoHtml(map);
+                response.getWriter().print(html);
+                SocketHelper.closeWithoutError(response.getWriter());
+            } else if (isXml) {
+                response.setContentType("application/json;charset=UTF-8");
+                String json = GsonHelper.toJsonString(map);
+                response.getWriter().print(json);
+                SocketHelper.closeWithoutError(response.getWriter());
+            } else if (isJson) {
+                response.setContentType("application/json;charset=UTF-8");
+                String json = GsonHelper.toJsonString(map);
+                response.getWriter().print(json);
+                SocketHelper.closeWithoutError(response.getWriter());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private String toInfoHtml(Map<String, Map<String, String>> map) {
+        String html = "" +
+                "<!DOCTYPE html>\n" +
+                "<html lang=\"en\">\n" +
+                "<head>\n" +
+                "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n" +
+                "<meta http-equiv=\"x-ua-compatible\" content=\"IE=9\">\n" +
+                "<meta charset=\"utf-8\">\n" +
+                "<title>Application Info Page</title>\n" +
+                "</head>\n" +
+                "<body>\n";
+        for (Map.Entry<String, Map<String, String>> pEntry : map.entrySet()) {
+            String content = "";
+            String pKey = pEntry.getKey();
+            content += "<h1>" + pKey + "</h1>\n<hr />\n";
+            Map<String, String> confMap = pEntry.getValue();
+            Set<Map.Entry<String, String>> entries = confMap.entrySet();
+            if (!"restConfig".equals(pKey)) {
+                content += "<table><tbody>\n";
+                for (Map.Entry<String, String> entry : entries) {
+                    content += "<tr><td class=\"info-title\">" + entry.getKey() + "</td><td class=\"info-value\">" + entry.getValue() + "</td></tr>\n";
+                }
+                content += "</tbody></table>\n";
+            } else {
+                Set<String> keys = confMap.keySet();
+                for (String key : keys) {
+                    if (!(StringUtils.startsWith(key, "[GET]") || StringUtils.startsWith(key, "[POST]") || StringUtils.startsWith(key, "[PUT]") || StringUtils.startsWith(key, "[DELETE]"))) {
+                        continue;
+                    }
+                    String restId = confMap.get(key);
+                    content += "<table><thead><tr><th>" + key + "</th></tr></thead></table>";
+                    content += "<table><thead><tr><th>Parameter</th><th>Type</th><th>Default Value</th></tr></thead>\n";
+                    String paramPre = "[ARG:" + restId + "]";
+                    content += "<tbody>";
+                    for (String paramKey : keys) {
+                        if (!StringUtils.startsWith(paramKey, paramPre)) {
+                            continue;
+                        }
+                        String paramValue = confMap.get(paramKey);
+                        String paramName = StringUtils.substringBefore(StringUtils.substringAfter(paramKey, "]"), "-");
+                        String paramType = StringUtils.substringAfter(StringUtils.substringAfter(paramKey, "]"), "-");
+                        content += "<tr><td class=\"info-title\">" + paramName + "</td><td>" + paramType + "</td><td>" + ("--NULL--".equals(paramValue) ? null : paramValue) + "</td>\n";
+                    }
+                    content += "</tbody></table>\n";
+                }
+
+            }
+            html += content;
+        }
+
+        html += "</body></html>";
+        html += "<style type=\"text/css\">\n";
+        html += "table{width: 100%;border-collapse: collapse;border: 1px solid #ccc;}\n" +
+                "table thead th {font-size: 12px;color: #333333;text-align: left;background-color: #ebeced;\n" +
+                "/*background: url(table_top.jpg) repeat-x top center;*/\n" +
+                "border: 1px solid #ccc; font-weight:bold;}\n" +
+                "table tbody tr {background: #fff;font-size: 12px;color: #666666;}\n" +
+                "table tbody tr.alt-row {background: #f2f7fc;}\n" +
+                "table td{line-height:20px;text-align: left;padding:4px 10px 3px 10px;height: 18px;border: 1px solid #ccc;}\n" +
+                ".info-title{background: #f4f5f7;padding-right: 10px;font-weight: bold;width: 100px;word-wrap: normal;white-space: nowrap;}";
+        html += "</style>\n";
+
+        return html;
     }
 }

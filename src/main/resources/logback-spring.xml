@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <conversionRule conversionWord="traceid"
+                    converterClass="org.iff.infra.util.log.TraceIdConvert"/>
+
+    <include resource="org/springframework/boot/logging/logback/base.xml"/>
+
+    <springProperty scope="context" name="appName" source="spring.application.name" defaultValue="app"/>
+
+    <property name="KAFKA_LOG_PATTERN"
+              value="app_name`#`${appName:-app}`@`traceid`#`%traceid`@`date`#`%d{yyyy-MM-dd HH:mm:ss.SSS}`@`level`#`%5p`@`pid`#`${PID:- }`@`logger`#`%-40.40logger{39}`@`message`#`%m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}}"/>
+
+    <appender name="KAFKA"
+              class="org.iff.infra.util.log.LogKafkaHelper$KafkaAppender">
+        <encoder>
+            <pattern>${KAFKA_LOG_PATTERN}</pattern>
+            <charset>UTF8</charset>
+        </encoder>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FILE"/>
+        <appender-ref ref="KAFKA"/>
+    </root>
+
+    <logger name="SystemAuth" level="DEBUG" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FILE"/>
+        <appender-ref ref="KAFKA"/>
+    </logger>
+
+    <logger name="FOSS" level="DEBUG" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FILE"/>
+        <appender-ref ref="KAFKA"/>
+    </logger>
+
+</configuration>

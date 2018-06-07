@@ -10,6 +10,7 @@ package com.foreveross.common;
 import org.iff.infra.util.Assert;
 
 import javax.xml.bind.annotation.XmlRootElement;
+import java.beans.Transient;
 import java.io.Serializable;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -77,6 +78,7 @@ public class ResultBean implements Serializable {
      * @author <a href="mailto:iffiff1@gmail.com">Tyler Chen</a>
      * @since Jul 19, 2016
      */
+    @Transient
     public boolean isError() {
         Object status = header.get("status");
         return "error".equalsIgnoreCase(String.valueOf(status));
@@ -89,6 +91,7 @@ public class ResultBean implements Serializable {
      * @author <a href="mailto:iffiff1@gmail.com">Tyler Chen</a>
      * @since Jul 19, 2016
      */
+    @Transient
     public boolean isSuccess() {
         Object status = header.get("status");
         return "success".equalsIgnoreCase(String.valueOf(status));
