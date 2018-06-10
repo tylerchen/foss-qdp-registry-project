@@ -13,7 +13,7 @@
 		file-encoding="UTF-8" ignore-unresolvable="true" order="-1000" />
 	<context:annotation-config />
 	<context:component-scan
-		base-package="com.foreveross.qdp,com.foreveross.common,com.foreveross.extension">
+		base-package="com.foreveross.qdp,com.foreveross.common,com.foreveross.extension,com.foreveross.admin">
 		<context:exclude-filter type="annotation"
 			expression="org.springframework.stereotype.Controller" />
 		<context:exclude-filter type="annotation"

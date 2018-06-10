@@ -770,7 +770,7 @@ public class UriManager {
 
         public static MyMethod create(Method m, Annotation[][] annotations) {
             Assert.notNull(m);
-            Assert.notEmpty(annotations);
+            Assert.notNull(annotations);
             MyMethod mm = new MyMethod();
             mm.method = m;
             mm.annotations = annotations;
