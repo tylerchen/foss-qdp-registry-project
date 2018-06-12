@@ -10,10 +10,7 @@ package com.foreveross.common.shiro;
 import com.foreveross.common.application.SystemApplication;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.web.servlet.AdviceFilter;
-import org.iff.infra.util.Assert;
-import org.iff.infra.util.BaseCryptHelper;
-import org.iff.infra.util.FCS;
-import org.iff.infra.util.MD5Helper;
+import org.iff.infra.util.*;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -47,7 +44,9 @@ public class ShiroAuthAccessControlFilter extends AdviceFilter implements OnceVa
             HttpServletRequest request = (HttpServletRequest) servletRequest;
 
             //是否为OnceValidAdvice。
-            //boolean isOnceValidAdvice = Boolean.TRUE.equals(request.getAttribute(OnceValidAdvice.REQUEST_MARK));
+            boolean isOnceValidAdvice = Boolean.TRUE.equals(request.getAttribute(OnceValidAdvice.REQUEST_MARK));
+
+            String ip = HttpHelper.getRemoteIpAddr(request);
 
             String token = request.getHeader("_auth");
 
@@ -82,16 +81,9 @@ public class ShiroAuthAccessControlFilter extends AdviceFilter implements OnceVa
             }
 
             boolean valid = loginPasswd.equalsIgnoreCase(MD5Helper.secondSalt(password));
-            //			if (!valid) {
-            //				//enable localhost, if you don't want to enable localhost use ShiroIpAccessControlFilter
-            //				String[] ips = new String[] { "0:0:0:0:0:0:0:*", "127.0.0.*" };
-            //				for (String aip : ips) {
-            //					valid = StringHelper.wildCardMatch(ip, aip.trim());
-            //					if (valid) {
-            //						break;
-            //					}
-            //				}
-            //			}
+            if (valid) {
+                Logger.debug(FCS.get("Shiro Author auth success, ip: {0}", ip));
+            }
             return valid;
         } catch (Exception e) {
             return false;

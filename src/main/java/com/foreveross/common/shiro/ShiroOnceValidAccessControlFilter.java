@@ -44,7 +44,7 @@ public class ShiroOnceValidAccessControlFilter extends AdviceFilter implements O
             return true;
         }
         {
-            Logger.debug(FCS.get("Shiro filter " + getClass().getSimpleName() + " preHandle, uri: {0}", url));
+            Logger.debug(FCS.get("Shiro filter OnceValidAdvice preHandle, uri: {0}", url));
             LogHelper.accessLog(null, request.getRemoteAddr(), url, "URL", new Date());
         }
         {

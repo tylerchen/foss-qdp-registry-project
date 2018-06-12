@@ -45,10 +45,6 @@ public class ShiroIpAccessControlFilter extends AdviceFilter implements OnceVali
 
         String ip = HttpHelper.getRemoteIpAddr(request);
 
-        {
-            Logger.debug(FCS.get("Shiro ShiroIpAccessControlFilter.preHandle, ip: {0}", ip));
-        }
-
         {/*check the match list.*/
             if (accessIp == null) {
                 accessIp = ConstantBean.getProperty("access.ip", "").trim();
@@ -61,8 +57,10 @@ public class ShiroIpAccessControlFilter extends AdviceFilter implements OnceVali
             }
             for (String aip : ips) {
                 if (aip.indexOf('*') < 0 && aip.equals(ip)) {
+                    Logger.debug(FCS.get("Shiro ip auth success, ip: {0}", ip));
                     return true;
                 } else if (StringHelper.wildCardMatch(ip, aip.trim())) {
+                    Logger.debug(FCS.get("Shiro ip auth success, ip: {0}", ip));
                     return true;
                 }
             }
@@ -73,15 +71,6 @@ public class ShiroIpAccessControlFilter extends AdviceFilter implements OnceVali
             Exceptions.runtime("Shiro not permit, end OnceValidAdvice chain.", "FOSS-SHIRO-0100");
         }
         return false;
-        //		/**
-        //		 * 验证2： 如果Header[Authorization]采用了约定的加密方式（把客户端的所有IP进行md5(md5(ip).reverse())拼接），服务端拿到客户端的IP也进行相同的加密方式，最后对比是否包含加密段即可，【非严谨验证方式】。
-        //		 */
-        //		boolean valid = HttpHelper.validateIpMd5(ip, HttpHelper.getAuthorization(request));
-        //		if (valid) {
-        //			return true;
-        //		} else {
-        //			return false;
-        //		}
     }
 
     protected void cleanup(ServletRequest request, ServletResponse response, Exception existing)

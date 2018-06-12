@@ -39,10 +39,10 @@
                             class="com.foreveross.common.shiro.ShiroOnceValidAccessControlFilter">
                         <property name="onceFilterChains">
                             <list>
-                                <bean class="com.foreveross.common.shiro.ShiroZuulAccessControlFilter"/>
                                 <bean class="com.foreveross.common.shiro.ShiroJwtAccessControlFilter"/>
                                 <bean class="com.foreveross.common.shiro.ShiroAuthAccessControlFilter"/>
                                 <bean class="com.foreveross.common.shiro.ShiroAccessControlFilter"/>
+                                <bean class="com.foreveross.common.shiro.ShiroZuulAccessControlFilter"/>
                                 <bean class="com.foreveross.common.shiro.ShiroIpAccessControlFilter"/>
                             </list>
                         </property>

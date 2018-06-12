@@ -13,10 +13,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.web.servlet.AdviceFilter;
-import org.iff.infra.util.Exceptions;
-import org.iff.infra.util.FCS;
-import org.iff.infra.util.I18nHelper;
-import org.iff.infra.util.ThreadLocalHelper;
+import org.iff.infra.util.*;
 
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
@@ -46,8 +43,9 @@ public class ShiroAccessControlFilter extends AdviceFilter implements OnceValidA
         ShiroUser loginUser = null;
         //是否为OnceValidAdvice。
         boolean isOnceValidAdvice = Boolean.TRUE.equals(request.getAttribute(OnceValidAdvice.REQUEST_MARK));
+
+        String ip = HttpHelper.getRemoteIpAddr(request);
         {
-            Logger.debug(FCS.get("Shiro ShiroAccessControlFilter.preHandle, uri: {0}", url));
             LogHelper.accessLog(loginUser != null ? loginUser.getLoginId() : null, request.getRemoteAddr(), url, "URL",
                     new Date());
         }
@@ -106,6 +104,7 @@ public class ShiroAccessControlFilter extends AdviceFilter implements OnceValidA
         // 如果是超级用户
         if (subject.hasRole("ADMIN")) {
             Logger.debug("Shiro ==ADMIN is Logging==");
+            Logger.debug(FCS.get("Shiro access success, ip: {0}", ip));
             return true;
         }
 
@@ -120,6 +119,7 @@ public class ShiroAccessControlFilter extends AdviceFilter implements OnceValidA
                 return false;
             }
         }
+        Logger.debug(FCS.get("Shiro access success, ip: {0}", ip));
         return true;
     }
 

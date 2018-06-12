@@ -47,11 +47,14 @@ public class ShiroZuulAccessControlFilter extends AdviceFilter implements OnceVa
             return false;
         }
 
-        Logger.debug(FCS.get("Shiro ShiroZuulAccessControlFilter.preHandle, ip: {0}, zuul: {1}", ip, zuul));
-
-        boolean valid = HttpHelper.validateIpMd5(ip, zuul);
+        boolean valid = false;
+        try {
+            valid = "zuul@admin.com".equals(JWTTokenHelper.decodeToken(zuul));
+        } catch (Exception e) {
+        }
 
         if (valid) {
+            Logger.debug(FCS.get("Shiro zuul auth success, ip: {0}", ip));
             return true;
         } else {
             ShiroHelper.retrun401(request, response, ResultBean.error().setBody("Unauthorized"));

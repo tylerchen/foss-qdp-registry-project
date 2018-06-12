@@ -15,6 +15,7 @@ import org.apache.shiro.web.servlet.AdviceFilter;
 import org.iff.infra.util.Assert;
 import org.iff.infra.util.Exceptions;
 import org.iff.infra.util.FCS;
+import org.iff.infra.util.HttpHelper;
 
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
@@ -44,6 +45,7 @@ public class ShiroJwtAccessControlFilter extends AdviceFilter implements OnceVal
         String url = StringUtils.removeStart(request.getRequestURI(), request.getContextPath());
         //是否为OnceValidAdvice。
         boolean isOnceValidAdvice = Boolean.TRUE.equals(request.getAttribute(OnceValidAdvice.REQUEST_MARK));
+        String ip = HttpHelper.getRemoteIpAddr(request);
 
         String jwtToken = request.getHeader("Authorization");
 
@@ -56,13 +58,12 @@ public class ShiroJwtAccessControlFilter extends AdviceFilter implements OnceVal
             jwtToken = jwtToken.substring(jwtToken.indexOf(" ")).trim();
         }
 
-        Logger.debug(FCS.get("Shiro ShiroJwtAccessControlFilter.preHandle, jwtToken: {0}", jwtToken));
-
         try {//开启shiro鉴权
             Subject subject = SecurityUtils.getSubject();
             subject.login(new JWTToken(jwtToken));
             //Shiro鉴权不通过，如果要终止后续的验证，需要自行返回错误信息并抛出异常
             Assert.state(ShiroHelper.isPermitted(subject, url));
+            Logger.debug(FCS.get("Shiro jwt auth success, ip: {0}", ip));
             return true;
         } catch (Exception e) {
             ShiroHelper.retrun401(request, response, ResultBean.error().setBody("Unauthorized"));
