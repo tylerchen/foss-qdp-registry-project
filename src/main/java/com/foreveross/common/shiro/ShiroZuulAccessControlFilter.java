@@ -9,7 +9,10 @@ package com.foreveross.common.shiro;
 
 import com.foreveross.common.ResultBean;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.subject.Subject;
 import org.apache.shiro.web.servlet.AdviceFilter;
+import org.iff.infra.util.Assert;
 import org.iff.infra.util.Exceptions;
 import org.iff.infra.util.FCS;
 import org.iff.infra.util.HttpHelper;
@@ -34,6 +37,7 @@ public class ShiroZuulAccessControlFilter extends AdviceFilter implements OnceVa
     public boolean preHandle(ServletRequest servletRequest, ServletResponse servletResponse) throws Exception {
         HttpServletRequest request = (HttpServletRequest) servletRequest;
         HttpServletResponse response = (HttpServletResponse) servletResponse;
+        String url = StringUtils.removeStart(request.getRequestURI(), request.getContextPath());
         //是否为OnceValidAdvice。
         boolean isOnceValidAdvice = Boolean.TRUE.equals(request.getAttribute(OnceValidAdvice.REQUEST_MARK));
 
@@ -47,22 +51,20 @@ public class ShiroZuulAccessControlFilter extends AdviceFilter implements OnceVa
             return false;
         }
 
-        boolean valid = false;
-        try {
-            valid = "zuul@admin.com".equals(JWTTokenHelper.decodeToken(zuul));
-        } catch (Exception e) {
-        }
-
-        if (valid) {
+        try {//开启shiro鉴权
+            Subject subject = SecurityUtils.getSubject();
+            subject.login(new JWTToken(zuul));
+            //Shiro鉴权不通过，如果要终止后续的验证，需要自行返回错误信息并抛出异常
+            Assert.state(ShiroHelper.isPermitted(subject, url));
             Logger.debug(FCS.get("Shiro zuul auth success, ip: {0}", ip));
             return true;
-        } else {
+        } catch (Exception e) {
             ShiroHelper.retrun401(request, response, ResultBean.error().setBody("Unauthorized"));
             if (isOnceValidAdvice) {
                 Exceptions.runtime("Shiro not permit, end OnceValidAdvice chain.", "FOSS-SHIRO-0100");
             }
-            return false;
         }
+        return false;
     }
 
     protected void cleanup(ServletRequest request, ServletResponse response, Exception existing)
