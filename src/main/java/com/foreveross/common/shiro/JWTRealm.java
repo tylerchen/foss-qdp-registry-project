@@ -45,7 +45,7 @@ public class JWTRealm extends AuthorizingRealm {
             return null;
         }
         Object principal = iterator.next();
-        String loginId = JWTTokenHelper.decodeToken(principal.toString());
+        String loginId = principal.toString();
         Set<String> roleNames = authorizationApplication.findAuthRoleByLoginId(loginId);
         Set<String> permissions = authorizationApplication.findAuthResourceByLoginId(loginId);
         Set<Permission> objectPermissions = new HashSet<Permission>();
