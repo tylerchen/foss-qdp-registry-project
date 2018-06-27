@@ -16,6 +16,8 @@ import org.iff.infra.util.IdHelper;
 import org.iff.infra.util.PropertiesHelper;
 import org.iff.infra.util.TypeConvertHelper;
 import org.springframework.beans.BeansException;
+import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.env.AbstractEnvironment;
@@ -23,14 +25,12 @@ import org.springframework.core.env.Environment;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.PropertySource;
 
+import javax.inject.Inject;
 import javax.inject.Named;
 import java.beans.BeanInfo;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Properties;
-import java.util.TreeMap;
+import java.util.*;
 
 /**
  * ApplicationInfoApplication
@@ -41,6 +41,9 @@ import java.util.TreeMap;
  */
 @Named("applicationInfoApplication")
 public class ApplicationInfoApplicationImpl implements ApplicationInfoApplication, ApplicationContextAware {
+
+    @Inject
+    DiscoveryClient discoveryClient;
 
     private ApplicationContext applicationContext = null;
 
@@ -54,6 +57,14 @@ public class ApplicationInfoApplicationImpl implements ApplicationInfoApplicatio
      */
     private Map<String, String> restConfigs = new TreeMap<String, String>();
     private Map<String, String> springBootConfigs = new TreeMap<String, String>();
+    /**
+     * {host:lastUpdateTime}
+     */
+    private Map<String, Long> registHosts = new HashMap<String, Long>();
+    /**
+     * {serviceId: {host:lastUpdateTime}}
+     */
+    private Map<String, Map<String, Long>> registHostsByServiceId = new HashMap<String, Map<String, Long>>();
 
     /**
      * 返回应用的配置。
@@ -191,5 +202,61 @@ public class ApplicationInfoApplicationImpl implements ApplicationInfoApplicatio
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * 返回注册到 Eureka 的主机 IP 列表，每15秒更新一次。
+     *
+     * @return
+     */
+    public Map<String, Long> registHosts() {
+        //如果 registHosts 不为空，并且距上次更新时间>15秒就重新获取。
+        if (registHosts.isEmpty() || (System.currentTimeMillis() - registHosts.values().iterator().next()) > 15 * 1000) {
+            long now = System.currentTimeMillis();
+            List<String> services = discoveryClient.getServices();
+            for (String service : services) {
+                List<ServiceInstance> instances = discoveryClient.getInstances(service);
+                List<String> uris = new ArrayList<String>();
+                for (ServiceInstance si : instances) {
+                    registHosts.put(si.getHost(), now);
+                }
+            }
+            for (String host : registHosts.keySet()) {
+                //如果 Hosts 长时间失效超300秒就清除。
+                if (now - registHosts.get(host) > 300 * 1000) {
+                    registHosts.remove(host);
+                }
+            }
+        }
+        return new HashMap<String, Long>(registHosts);
+    }
+
+    public Map<String, Long> registHostsByServiceId(String serviceId) {
+        Map<String, Long> registHostMap = registHostsByServiceId.get(serviceId);
+        if (registHostMap == null) {
+            registHostMap = new HashMap<String, Long>();
+        }
+        if (registHostMap.isEmpty() || (System.currentTimeMillis() - registHostMap.values().iterator().next()) > 15 * 1000) {
+            long now = System.currentTimeMillis();
+            List<String> services = discoveryClient.getServices();
+            for (String service : services) {
+                if (!service.equals(serviceId)) {
+                    continue;
+                }
+                List<ServiceInstance> instances = discoveryClient.getInstances(service);
+                List<String> uris = new ArrayList<String>();
+                for (ServiceInstance si : instances) {
+                    registHostMap.put(si.getHost(), now);
+                }
+            }
+            for (String host : registHostMap.keySet()) {
+                //如果 Hosts 长时间失效超300秒就清除。
+                if (now - registHostMap.get(host) > 300 * 1000) {
+                    registHostMap.remove(host);
+                }
+            }
+            registHostsByServiceId.put(serviceId, registHostMap);
+        }
+        return new HashMap<String, Long>(registHostMap);
     }
 }

@@ -166,14 +166,12 @@ public class ProjectInitializeBean
                             initSpringService.addAll(Arrays.asList(interfaces));
                         }
                     } catch (Exception e) {
-                        e.printStackTrace();
                     }
                 }
                 if (initSpringService.size() > 0) {
                     monitorApplication.initSpringServiceMap(initSpringService.toArray(new Class<?>[0]));
                 }
             } catch (Exception e) {
-                e.printStackTrace();
             }
         }
     }

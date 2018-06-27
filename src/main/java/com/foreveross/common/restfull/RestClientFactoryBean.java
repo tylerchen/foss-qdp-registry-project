@@ -12,6 +12,7 @@ import com.foreveross.common.restfull.RestClient.Options;
 import com.foreveross.common.restfull.RestClient.Request;
 import com.foreveross.common.restfull.RestClient.Request.Builder;
 import com.foreveross.common.restfull.RestClient.Response;
+import com.foreveross.common.util.EncryptDecryptUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.iff.infra.util.*;
 import org.iff.infra.util.TypeConvertHelper.TypeConvert;
@@ -55,22 +56,6 @@ public class RestClientFactoryBean implements FactoryBean<Object> {
      * the proxy object to send rest request.
      */
     private Object proxyObject;
-
-    public Object getObject() {
-        if (proxyObject == null) {
-            proxyObject = Proxy.newProxyInstance(RestClient.class.getClassLoader(), new Class<?>[]{type},
-                    new RestClientInvocationHandler(this));
-        }
-        return proxyObject;
-    }
-
-    public Class<?> getObjectType() {
-        return this.type;
-    }
-
-    public boolean isSingleton() {
-        return true;
-    }
 
     public static void matchRestUri(Class<?> interfaceClass, Map<String, String> restClientConf) {
         Method[] methods = interfaceClass.getMethods();
@@ -137,6 +122,191 @@ public class RestClientFactoryBean implements FactoryBean<Object> {
             return clazz.getComponentType().getSimpleName() + "[]";
         }
         return clazz.getSimpleName();
+    }
+
+    public Object getObject() {
+        if (proxyObject == null) {
+            proxyObject = Proxy.newProxyInstance(RestClient.class.getClassLoader(), new Class<?>[]{type},
+                    new RestClientInvocationHandler(this));
+        }
+        return proxyObject;
+    }
+
+    public Class<?> getObjectType() {
+        return this.type;
+    }
+
+    public boolean isSingleton() {
+        return true;
+    }
+
+    public Class<?> getType() {
+        return type;
+    }
+
+    public void setType(Class<?> type) {
+        this.type = type;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    public void setPath(String path) {
+        this.path = path;
+    }
+
+    public String getRestPrefix() {
+        return restPrefix;
+    }
+
+    public void setRestPrefix(String restPrefix) {
+        this.restPrefix = restPrefix;
+    }
+
+    public Map<String, String> getRestClientConf() {
+        return restClientConf;
+    }
+
+    public void setRestClientConf(Map<String, String> restClientConf) {
+        this.restClientConf = restClientConf;
+    }
+
+    public LoadBalancerRoundRobin getLoadBalancer() {
+        return loadBalancer;
+    }
+
+    public void setLoadBalancer(LoadBalancerRoundRobin loadBalancer) {
+        this.loadBalancer = loadBalancer;
+    }
+
+    public Object getProxyObject() {
+        return proxyObject;
+    }
+
+    public void setProxyObject(Object proxyObject) {
+        this.proxyObject = proxyObject;
+    }
+
+    public static class MethodOperation {
+        /**
+         * 接口方法
+         **/
+        private Method method;
+        /**
+         * 接口方法对应的rest路径
+         **/
+        private String[] paths;
+        /**
+         * 接口方法对应的rest http请求方法
+         **/
+        private String httpMethod;
+        /**  **/
+        private List<Map<String, Method>> argNameGetterMaps = new ArrayList<Map<String, Method>>();
+
+        /**
+         * 创建 MethodOperation
+         *
+         * @param method           被调用的方法
+         * @param path             URI路径
+         * @param methodTypeFields 方法类型简称及字段，结构：[[methodSimpleName, "field1,field2"]]
+         * @return
+         * @author <a href="mailto:iffiff1@gmail.com">Tyler Chen</a>
+         * @since Feb 3, 2018
+         */
+        public static MethodOperation create(Method method, String path, String httpMethod,
+                                             List<String[/*0:参数类型名称，1:参数类型的字段*/]> methodTypeFields) {
+            Assert.notNull(method, "Method can't be null!");
+            Assert.notEmpty(path, "Path can't be empty!");
+            Assert.notEmpty(httpMethod, "Http method can't be empty!");
+            MethodOperation mo = new MethodOperation();
+            mo.setMethod(method);
+            mo.setPaths(StringUtils.split(path, ','));
+            mo.setHttpMethod(httpMethod);
+            if (methodTypeFields == null || methodTypeFields.isEmpty()) {
+                return mo;
+            }
+            Class<?>[] types = method.getParameterTypes();
+            int i = 0;
+            for (String[] typeField : methodTypeFields) {
+                String methodType = typeField[0];
+                String[] methodFields = StringUtils.split(StringUtils.defaultString(typeField[1]), ',');
+                Assert.notEmpty(methodType, "Method type [e.g.: XX.method.XX.arg0=SysI18nVO] can't be empty!");
+                Map<String, Method> map = new HashMap<String, Method>();
+                if (methodFields.length < 1) {//如果参数没有带字段，就不需要取该参数的字段。
+                    mo.getArgNameGetterMaps().add(map);
+                    continue;
+                }
+                //如果参数带字段，就把该字段对应的getter方法拿出来，方便到时取值。
+                Class<?> type = types[i++];
+                for (String field : methodFields) {
+                    try {
+                        TypeConvert convert = TypeConvertHelper.me().get(type.getName());
+                        if ("null".equals(convert.getName())) {
+                            PropertyDescriptor prop = new PropertyDescriptor(field, type);
+                            Method readMethod = prop.getReadMethod();
+                            map.put(field, readMethod);
+                        } else {
+                            map.put(field, null);
+                        }
+                    } catch (Exception e) {
+                        Logger.debug(FCS.get("Can't new PropertyDescriptor from class: {0} and field: {1}!",
+                                type.getName(), field), e);
+                        map.put(field, null);
+                    }
+                }
+                mo.getArgNameGetterMaps().add(map);
+            }
+            return mo;
+        }
+
+        public Method getMethod() {
+            return method;
+        }
+
+        public void setMethod(Method method) {
+            this.method = method;
+        }
+
+        public String[] getPaths() {
+            return paths;
+        }
+
+        public void setPaths(String[] paths) {
+            this.paths = paths;
+        }
+
+        public String getHttpMethod() {
+            return httpMethod;
+        }
+
+        public void setHttpMethod(String httpMethod) {
+            this.httpMethod = httpMethod;
+        }
+
+        public List<Map<String, Method>> getArgNameGetterMaps() {
+            return argNameGetterMaps;
+        }
+
+        public void setArgNameGetterMaps(List<Map<String, Method>> argNameGetterMaps) {
+            this.argNameGetterMaps = argNameGetterMaps;
+        }
     }
 
     private final class RestClientInvocationHandler implements InvocationHandler {
@@ -255,182 +425,18 @@ public class RestClientFactoryBean implements FactoryBean<Object> {
                 Logger.debug("[2] Request method            : " + httpMethod);
                 Logger.debug("[3] Return type               : " + returnType);
             }
-            Builder builder = Request.builder().method(httpMethod, body).url(url2).resultType(returnType)
-                    .header("zuul", HttpHelper.ipsMd5()).header("Content-Type", "application/json")
-                    .header("Accept", "application/json; charset=UTF-8").charset("UTF-8");
+            Builder builder = Request.builder()
+                    .method(httpMethod, body)
+                    .url(url2)
+                    .resultType(returnType)
+                    .header("Content-Type", "application/json")
+                    .header("mstoken", EncryptDecryptUtil.deflate2Base62Encrypt("instance@admin.com"))
+                    .header("Accept", "application/json; charset=UTF-8")
+                    .charset("UTF-8");
             Request request = builder.build();
             Response response = client.execute(request, new Options());
             return response.toObject();
         }
-    }
-
-    public static class MethodOperation {
-        /**
-         * 接口方法
-         **/
-        private Method method;
-        /**
-         * 接口方法对应的rest路径
-         **/
-        private String[] paths;
-        /**
-         * 接口方法对应的rest http请求方法
-         **/
-        private String httpMethod;
-        /**  **/
-        private List<Map<String, Method>> argNameGetterMaps = new ArrayList<Map<String, Method>>();
-
-        /**
-         * 创建 MethodOperation
-         *
-         * @param method           被调用的方法
-         * @param path             URI路径
-         * @param methodTypeFields 方法类型简称及字段，结构：[[methodSimpleName, "field1,field2"]]
-         * @return
-         * @author <a href="mailto:iffiff1@gmail.com">Tyler Chen</a>
-         * @since Feb 3, 2018
-         */
-        public static MethodOperation create(Method method, String path, String httpMethod,
-                                             List<String[/*0:参数类型名称，1:参数类型的字段*/]> methodTypeFields) {
-            Assert.notNull(method, "Method can't be null!");
-            Assert.notEmpty(path, "Path can't be empty!");
-            Assert.notEmpty(httpMethod, "Http method can't be empty!");
-            MethodOperation mo = new MethodOperation();
-            mo.setMethod(method);
-            mo.setPaths(StringUtils.split(path, ','));
-            mo.setHttpMethod(httpMethod);
-            if (methodTypeFields == null || methodTypeFields.isEmpty()) {
-                return mo;
-            }
-            Class<?>[] types = method.getParameterTypes();
-            int i = 0;
-            for (String[] typeField : methodTypeFields) {
-                String methodType = typeField[0];
-                String[] methodFields = StringUtils.split(StringUtils.defaultString(typeField[1]), ',');
-                Assert.notEmpty(methodType, "Method type [e.g.: XX.method.XX.arg0=SysI18nVO] can't be empty!");
-                Map<String, Method> map = new HashMap<String, Method>();
-                if (methodFields.length < 1) {//如果参数没有带字段，就不需要取该参数的字段。
-                    mo.getArgNameGetterMaps().add(map);
-                    continue;
-                }
-                //如果参数带字段，就把该字段对应的getter方法拿出来，方便到时取值。
-                Class<?> type = types[i++];
-                for (String field : methodFields) {
-                    try {
-                        TypeConvert convert = TypeConvertHelper.me().get(type.getName());
-                        if ("null".equals(convert.getName())) {
-                            PropertyDescriptor prop = new PropertyDescriptor(field, type);
-                            Method readMethod = prop.getReadMethod();
-                            map.put(field, readMethod);
-                        } else {
-                            map.put(field, null);
-                        }
-                    } catch (Exception e) {
-                        Logger.debug(FCS.get("Can't new PropertyDescriptor from class: {0} and field: {1}!",
-                                type.getName(), field), e);
-                        map.put(field, null);
-                    }
-                }
-                mo.getArgNameGetterMaps().add(map);
-            }
-            return mo;
-        }
-
-        public Method getMethod() {
-            return method;
-        }
-
-        public void setMethod(Method method) {
-            this.method = method;
-        }
-
-        public String[] getPaths() {
-            return paths;
-        }
-
-        public void setPaths(String[] paths) {
-            this.paths = paths;
-        }
-
-        public String getHttpMethod() {
-            return httpMethod;
-        }
-
-        public void setHttpMethod(String httpMethod) {
-            this.httpMethod = httpMethod;
-        }
-
-        public List<Map<String, Method>> getArgNameGetterMaps() {
-            return argNameGetterMaps;
-        }
-
-        public void setArgNameGetterMaps(List<Map<String, Method>> argNameGetterMaps) {
-            this.argNameGetterMaps = argNameGetterMaps;
-        }
-    }
-
-    public Class<?> getType() {
-        return type;
-    }
-
-    public void setType(Class<?> type) {
-        this.type = type;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getUrl() {
-        return url;
-    }
-
-    public void setUrl(String url) {
-        this.url = url;
-    }
-
-    public String getPath() {
-        return path;
-    }
-
-    public void setPath(String path) {
-        this.path = path;
-    }
-
-    public String getRestPrefix() {
-        return restPrefix;
-    }
-
-    public void setRestPrefix(String restPrefix) {
-        this.restPrefix = restPrefix;
-    }
-
-    public Map<String, String> getRestClientConf() {
-        return restClientConf;
-    }
-
-    public void setRestClientConf(Map<String, String> restClientConf) {
-        this.restClientConf = restClientConf;
-    }
-
-    public LoadBalancerRoundRobin getLoadBalancer() {
-        return loadBalancer;
-    }
-
-    public void setLoadBalancer(LoadBalancerRoundRobin loadBalancer) {
-        this.loadBalancer = loadBalancer;
-    }
-
-    public Object getProxyObject() {
-        return proxyObject;
-    }
-
-    public void setProxyObject(Object proxyObject) {
-        this.proxyObject = proxyObject;
     }
 
 }

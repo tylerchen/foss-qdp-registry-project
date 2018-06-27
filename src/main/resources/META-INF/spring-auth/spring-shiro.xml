@@ -25,8 +25,8 @@
                 <entry key="accip">
                     <bean class="com.foreveross.common.shiro.ShiroIpAccessControlFilter"/>
                 </entry>
-                <entry key="acczuul">
-                    <bean class="com.foreveross.common.shiro.ShiroZuulAccessControlFilter"/>
+                <entry key="accgw">
+                    <bean class="com.foreveross.common.shiro.ShiroGatewayAccessControlFilter"/>
                 </entry>
                 <entry key="accauth">
                     <bean class="com.foreveross.common.shiro.ShiroAuthAccessControlFilter"/>
@@ -35,14 +35,13 @@
                     <bean class="com.foreveross.common.shiro.ShiroJwtAccessControlFilter"/>
                 </entry>
                 <entry key="acconce">
-                    <bean
-                            class="com.foreveross.common.shiro.ShiroOnceValidAccessControlFilter">
+                    <bean class="com.foreveross.common.shiro.ShiroOnceValidAccessControlFilter">
                         <property name="onceFilterChains">
                             <list>
+                                <bean class="com.foreveross.common.shiro.ShiroGatewayAccessControlFilter"/>
                                 <bean class="com.foreveross.common.shiro.ShiroJwtAccessControlFilter"/>
                                 <bean class="com.foreveross.common.shiro.ShiroAuthAccessControlFilter"/>
                                 <bean class="com.foreveross.common.shiro.ShiroAccessControlFilter"/>
-                                <bean class="com.foreveross.common.shiro.ShiroZuulAccessControlFilter"/>
                                 <bean class="com.foreveross.common.shiro.ShiroIpAccessControlFilter"/>
                             </list>
                         </property>

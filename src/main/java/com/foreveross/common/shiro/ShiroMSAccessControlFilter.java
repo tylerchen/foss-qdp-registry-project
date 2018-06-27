@@ -8,15 +8,14 @@
 package com.foreveross.common.shiro;
 
 import com.foreveross.common.ResultBean;
+import com.foreveross.common.application.ApplicationInfoApplication;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shiro.SecurityUtils;
-import org.apache.shiro.subject.Subject;
 import org.apache.shiro.web.servlet.AdviceFilter;
 import org.iff.infra.util.Assert;
 import org.iff.infra.util.Exceptions;
-import org.iff.infra.util.FCS;
 import org.iff.infra.util.HttpHelper;
 
+import javax.inject.Inject;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
@@ -25,14 +24,21 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
- * Shiro ZUUL验证过滤器
+ * <pre>
+ * Shiro ZUUL验证过滤器，Real Server 需要先在 Eureka 注册，
+ * 然后通过Header[mstoken]取得EncryptDecryptUtil.deflate2Base62Encrypt值进行解码后进行 IP 验证。
+ * 编码：/system/encrypeDecrypt?target=userName
+ * </pre>
  *
  * @author <a href="mailto:iffiff1@gmail.com">Tyler Chen</a>
  * @since Aug 11, 2016
  */
-public class ShiroZuulAccessControlFilter extends AdviceFilter implements OnceValidAdvice {
+public class ShiroMSAccessControlFilter extends AdviceFilter implements OnceValidAdvice {
 
     private static final org.iff.infra.util.Logger.Log Logger = org.iff.infra.util.Logger.get("FOSS.SHIRO");
+
+    @Inject
+    ApplicationInfoApplication applicationInfoApplication;
 
     public boolean preHandle(ServletRequest servletRequest, ServletResponse servletResponse) throws Exception {
         HttpServletRequest request = (HttpServletRequest) servletRequest;
@@ -43,20 +49,18 @@ public class ShiroZuulAccessControlFilter extends AdviceFilter implements OnceVa
 
         String ip = HttpHelper.getRemoteIpAddr(request);
         /**
-         * 验证： 如果Header[zuul]采用了约定的加密方式（把客户端的所有IP进行md5(md5(ip).reverse())拼接），服务端拿到客户端的IP也进行相同的加密方式，最后对比是否包含加密段即可，【非严谨验证方式】。
+         * 验证： 如果Header[zuul]采用了约定的加密方式。
          */
-        String zuul = request.getHeader("zuul");
+        String zuulValue = request.getHeader("mstoken");
 
-        if (StringUtils.isBlank(zuul)) {
+        if (StringUtils.isBlank(zuulValue)) {
             return false;
         }
 
         try {//开启shiro鉴权
-            Subject subject = SecurityUtils.getSubject();
-            subject.login(new JWTToken(zuul));
-            //Shiro鉴权不通过，如果要终止后续的验证，需要自行返回错误信息并抛出异常
-            Assert.state(ShiroHelper.isPermitted(subject, url));
-            Logger.debug(FCS.get("Shiro zuul auth success, ip: {0}", ip));
+            zuulValue = zuulValue != null && zuulValue.indexOf(' ') > -1 ? zuulValue.substring(zuulValue.indexOf(' ')).trim() : zuulValue;
+            //String remoteIp = ZuulTokenHelper.mark(EncryptDecryptUtil.deflate2Base62Decrypt(zuulValue));
+            Assert.state(ZuulTokenHelper.validate(zuulValue, "instance@admin.com"), "Shiro zuul auth failed, remote ip not register in eureka!");
             return true;
         } catch (Exception e) {
             ShiroHelper.retrun401(request, response, ResultBean.error().setBody("Unauthorized"));
@@ -71,5 +75,4 @@ public class ShiroZuulAccessControlFilter extends AdviceFilter implements OnceVa
             throws ServletException, IOException {
         super.cleanup(request, response, existing);
     }
-
 }

@@ -54,4 +54,25 @@ public interface ApplicationInfoApplication {
      * @return
      */
     Map<String, String> springBootConfig();
+
+    /**
+     * 返回注册到 Eureka 的主机 IP 列表，每15秒更新一次。
+     *
+     * @return
+     * @author <a href="mailto:iffiff1@gmail.com">Tyler Chen</a>
+     * @date 2018-06-27
+     * @since 2018-06-27
+     */
+    Map<String, Long> registHosts();
+
+    /**
+     * 返回指定 service id 注册到 Eureka 的主机 IP 列表，每15秒更新一次。
+     *
+     * @param serviceId
+     * @return
+     * @author <a href="mailto:iffiff1@gmail.com">Tyler Chen</a>
+     * @date 2018-06-27
+     * @since 2018-06-27
+     */
+    Map<String, Long> registHostsByServiceId(String serviceId);
 }

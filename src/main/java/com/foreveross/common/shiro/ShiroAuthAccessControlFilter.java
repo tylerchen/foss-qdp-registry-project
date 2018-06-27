@@ -22,8 +22,8 @@ import java.io.IOException;
 
 /**
  * <pre>
- * Shiro Auth验证过滤器，通过验证Header中的auth值来验证密码。
- * auth = base64(loginId:MD5Helper.firstSalt(密码明文))
+ * Shiro Auth验证过滤器，通过验证Header中的Authorization或 Parameter 中的_auth值来验证密码。
+ * auth =Basic base64(loginId:MD5Helper.firstSalt(密码明文))
  * 数据库密码 = MD5Helper.secondSalt(MD5Helper.firstSalt(密码明文));
  * 验证密码时会把token中的密码进行MD5Helper.secondSalt()然后与数据库的密码匹配。
  * </pre>
@@ -48,12 +48,14 @@ public class ShiroAuthAccessControlFilter extends AdviceFilter implements OnceVa
 
             String ip = HttpHelper.getRemoteIpAddr(request);
 
-            String token = request.getHeader("_auth");
+            String token = request.getHeader("Authorization");
 
             Logger.debug(FCS.get("Shiro ShiroAuthAccessControlFilter.preHandle, token: {0}", token));
 
-            if (StringUtils.isBlank(token)) {
+            if (!StringUtils.startsWith(token, "Basic ")) {
                 token = request.getParameter("_auth");
+            } else {
+                token = token.substring(token.indexOf(" ")).trim();
             }
             if (StringUtils.isBlank(token)) {
                 return false;

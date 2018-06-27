@@ -15,6 +15,7 @@ import com.foreveross.common.application.ImageCaptchaApplication;
 import com.foreveross.common.application.SystemApplication;
 import com.foreveross.common.shiro.JWTTokenHelper;
 import com.foreveross.common.shiro.ShiroUser;
+import com.foreveross.common.util.EncryptDecryptUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.UsernamePasswordToken;
@@ -258,12 +259,45 @@ public class SystemController extends BaseController {
         try {
             String parameter = request.getParameter("password");
             if (!StringUtils.isBlank(parameter)) {
-                parameter = MD5Helper.secondSalt(MD5Helper.firstSalt(parameter));
+                parameter = EncryptDecryptUtil.secondSalt(parameter);
             }
             return success(parameter);
         } catch (Exception e) {
             return error(e);
         }
+    }
+
+    @ResponseBody
+    @RequestMapping("/encrypeDecrypt")
+    public String encrypeDecrypt(HttpServletRequest request) {
+        String type = request.getParameter("type");
+        String parameter = request.getParameter("target");
+        if ("firstSalt".equals(type)) {
+            return StringUtils.defaultString(EncryptDecryptUtil.firstSalt(parameter), "ERROR");
+        }
+        if ("secondSalt".equals(type)) {
+            return StringUtils.defaultString(EncryptDecryptUtil.secondSalt(parameter), "ERROR");
+        }
+        if ("rsaEncrypt".equals(type)) {
+            return StringUtils.defaultString(EncryptDecryptUtil.rsaEncrypt(parameter), "ERROR");
+        }
+        if ("rsaDecrypt".equals(type)) {
+            return StringUtils.defaultString(EncryptDecryptUtil.rsaDecrypt(parameter), "ERROR");
+        }
+        if ("deflate2Base62Encrypt".equals(type)) {
+            String mark = request.getParameter("mark");
+            if (StringUtils.isBlank(mark)) {
+                mark = HttpHelper.getIpAddr(request);
+            }
+            if (StringUtils.isNotBlank(mark)) {
+                return StringUtils.defaultString(EncryptDecryptUtil.deflate2Base62Encrypt(parameter, mark), "ERROR");
+            }
+            return StringUtils.defaultString(EncryptDecryptUtil.deflate2Base62Encrypt(parameter), "ERROR");
+        }
+        if ("deflate2Base62Decrypt".equals(type)) {
+            return StringUtils.defaultString(EncryptDecryptUtil.deflate2Base62Decrypt(parameter), "ERROR");
+        }
+        return "ERROR";
     }
 
     @RequestMapping("/info")
