@@ -38,6 +38,7 @@
                     <bean class="com.foreveross.common.shiro.ShiroOnceValidAccessControlFilter">
                         <property name="onceFilterChains">
                             <list>
+                                <bean class="com.foreveross.common.shiro.ShiroEurekaAccessControlFilter"/>
                                 <bean class="com.foreveross.common.shiro.ShiroGatewayAccessControlFilter"/>
                                 <bean class="com.foreveross.common.shiro.ShiroJwtAccessControlFilter"/>
                                 <bean class="com.foreveross.common.shiro.ShiroAuthAccessControlFilter"/>

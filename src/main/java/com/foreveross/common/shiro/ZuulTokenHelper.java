@@ -91,7 +91,7 @@ public class ZuulTokenHelper {
      * @return
      */
     public static boolean validate(String encodeStr, String userName) {
-        String decoded = EncryptDecryptUtil.deflate2Base62Encrypt(encodeStr);
+        String decoded = EncryptDecryptUtil.deflate2Base62Decrypt(encodeStr);
         String decodeUserName = userName(decoded);
         if (decodeUserName != null && decodeUserName.equals(userName)) {
             return true;
