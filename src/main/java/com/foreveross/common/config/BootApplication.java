@@ -10,6 +10,7 @@ package com.foreveross.common.config;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration;
 import org.springframework.boot.autoconfigure.transaction.TransactionAutoConfiguration;
@@ -21,7 +22,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ComponentScan.Filter;
 import org.springframework.context.annotation.FilterType;
-import org.springframework.core.Ordered;
 import org.springframework.web.filter.CharacterEncodingFilter;
 import org.springframework.web.filter.DelegatingFilterProxy;
 import org.springframework.web.multipart.MultipartResolver;
@@ -37,14 +37,18 @@ import javax.servlet.DispatcherType;
  */
 @EnableEurekaServer
 @EnableEurekaClient
-@SpringBootApplication(exclude = {DataSourceAutoConfiguration.class,
-        DataSourceTransactionManagerAutoConfiguration.class,
-        TransactionAutoConfiguration.class})
-
+@SpringBootApplication(
+        exclude = {DataSourceAutoConfiguration.class,
+                DataSourceTransactionManagerAutoConfiguration.class,
+                TransactionAutoConfiguration.class,
+                JacksonAutoConfiguration.class})
 //@ImportResource({ "classpath:META-INF/spring/root.xml" }) =>这个放到application.properties中配置了
-@ComponentScan(basePackages = {"com.foreveross.qdp", "com.foreveross.common",
-        "com.foreveross.extension"}, excludeFilters = {
-        @Filter(type = FilterType.REGEX, pattern = {"com.foreveross.extension.activiti.*"})})
+@ComponentScan(
+        basePackages = {"com.foreveross.qdp",
+                "com.foreveross.common",
+                "com.foreveross.extension"},
+        excludeFilters = {
+                @Filter(type = FilterType.REGEX, pattern = {"com.foreveross.extension.activiti.*"})})
 public class BootApplication extends WebMvcConfigurerAdapter {
 
     public static void main(String[] args) throws Exception {
@@ -90,28 +94,6 @@ public class BootApplication extends WebMvcConfigurerAdapter {
         filterRegistration.setDispatcherTypes(DispatcherType.REQUEST);
         return filterRegistration;
     }
-
-//    @Bean
-//    public DelegatingFilterProxy shiroFilter() {
-//        DelegatingFilterProxy filter = new DelegatingFilterProxy();
-//        filter.setTargetFilterLifecycle(true);
-//        filter.setTargetBeanName("shiroFilter");
-//        return filter;
-//    }
-//
-//    @Bean
-//    public DispatcherServlet dispatcherServlet() {
-//        DispatcherServlet servlet = new DispatcherServlet();
-//        servlet.setDispatchOptionsRequest(true);
-//        return servlet;
-//    }
-//
-//    @Bean
-//    public ServletRegistrationBean dispatcherRegistration(DispatcherServlet dispatcherServlet) {
-//        ServletRegistrationBean registration = new ServletRegistrationBean(dispatcherServlet, "/*");
-//        registration.setLoadOnStartup(1);
-//        return registration;
-//    }
 
     /**
      * 文件上传

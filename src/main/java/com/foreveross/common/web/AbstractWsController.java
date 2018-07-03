@@ -19,7 +19,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -67,8 +66,7 @@ public abstract class AbstractWsController extends BaseController {
      * @since Jul 19, 2016
      */
     @RequestMapping(value = "/json/{beanName}/{methodName}/**", produces = "application/json;charset=UTF-8")
-    @ResponseBody
-    public String toJson(ModelMap modelMap, HttpServletRequest request, HttpServletResponse response) {
+    public void toJson(ModelMap modelMap, HttpServletRequest request, HttpServletResponse response) {
         try {
             String requestURI = request.getRequestURI();
             String reportPath = StringUtils.substringAfter(requestURI, "/json/");
@@ -82,8 +80,12 @@ public abstract class AbstractWsController extends BaseController {
                 } catch (Exception e) {
                 }
                 if (bean == null) {
-                    return GsonHelper.toJsonString(
+                    String invoke = GsonHelper.toJsonString(
                             ResultBean.error().setBody(FCS.get("can't find bean[{0}]!", beanName).toString()));
+                    response.setContentType("application/json;charset=UTF-8");
+                    response.getWriter().print(invoke);
+                    SocketHelper.closeWithoutError(response.getWriter());
+                    return;
                 }
             }
             Map<String, Object> conditionParams = new LinkedHashMap<String, Object>();
@@ -108,11 +110,20 @@ public abstract class AbstractWsController extends BaseController {
                 }
                 conditionParams.putAll(modelMap);
             }
-            String value = invokeToString(beanName, methodName, bean, conditionParams, GsonHelper.class);
-            return value;
+            String invoke = invokeToString(beanName, methodName, bean, conditionParams, GsonHelper.class);
+            response.setContentType("application/json;charset=UTF-8");
+            response.getWriter().print(invoke);
+            SocketHelper.closeWithoutError(response.getWriter());
         } catch (Exception ex) {
-            return GsonHelper.toJsonString(
-                    ResultBean.error().setBody(FCS.get("get json error: {0}", ex.getMessage()).toString()));
+            try {
+                String invoke = GsonHelper.toJsonString(
+                        ResultBean.error().setBody(FCS.get("get json error: {0}", ex.getMessage()).toString()));
+                response.setContentType("application/json;charset=UTF-8");
+                response.getWriter().print(invoke);
+                SocketHelper.closeWithoutError(response.getWriter());
+            } catch (Exception e) {
+                Exceptions.runtime("HTTP response write error!", e);
+            }
         }
     }
 
@@ -127,8 +138,7 @@ public abstract class AbstractWsController extends BaseController {
      * @since Jul 19, 2016
      */
     @RequestMapping(value = "/xml/{beanName}/{methodName}/**", produces = "application/xml;charset=UTF-8")
-    @ResponseBody
-    public String toXml(ModelMap modelMap, HttpServletRequest request, HttpServletResponse response) {
+    public void toXml(ModelMap modelMap, HttpServletRequest request, HttpServletResponse response) {
         try {
             String requestURI = request.getRequestURI();
             String reportPath = StringUtils.substringAfter(requestURI, "/xml/");
@@ -142,8 +152,12 @@ public abstract class AbstractWsController extends BaseController {
                 } catch (Exception e) {
                 }
                 if (bean == null) {
-                    return XStreamHelper
+                    String invoke = XStreamHelper
                             .toXml(ResultBean.error().setBody(FCS.get("can't find bean[{0}]!", beanName).toString()));
+                    response.setContentType("application/xml;charset=UTF-8");
+                    response.getWriter().print(invoke);
+                    SocketHelper.closeWithoutError(response.getWriter());
+                    return;
                 }
             }
             Map<String, Object> conditionParams = new LinkedHashMap<String, Object>();
@@ -163,10 +177,20 @@ public abstract class AbstractWsController extends BaseController {
             {
                 conditionParams.putAll(modelMap);
             }
-            return invokeToString(beanName, methodName, bean, conditionParams, XStreamHelper.class);
+            String invoke = invokeToString(beanName, methodName, bean, conditionParams, XStreamHelper.class);
+            response.setContentType("application/xml;charset=UTF-8");
+            response.getWriter().print(invoke);
+            SocketHelper.closeWithoutError(response.getWriter());
         } catch (Exception ex) {
-            return GsonHelper.toJsonString(
-                    ResultBean.error().setBody(FCS.get("get xml error: {0}", ex.getMessage()).toString()));
+            try {
+                String invoke = GsonHelper.toJsonString(
+                        ResultBean.error().setBody(FCS.get("get xml error: {0}", ex.getMessage()).toString()));
+                response.setContentType("application/xml;charset=UTF-8");
+                response.getWriter().print(invoke);
+                SocketHelper.closeWithoutError(response.getWriter());
+            } catch (Exception e) {
+                Exceptions.runtime("HTTP response write error!", e);
+            }
         }
     }
 
