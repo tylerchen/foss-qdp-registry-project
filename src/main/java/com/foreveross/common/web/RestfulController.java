@@ -11,8 +11,9 @@ package com.foreveross.common.web;
 import com.foreveross.common.ResultBean;
 import com.foreveross.common.restfull.UriManager;
 import org.apache.commons.lang3.StringUtils;
-import org.iff.infra.util.FCS;
+import org.iff.infra.util.Exceptions;
 import org.iff.infra.util.GsonHelper;
+import org.iff.infra.util.SocketHelper;
 import org.iff.infra.util.XStreamHelper;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -55,20 +56,20 @@ public class RestfulController extends BaseController {
             MediaType.APPLICATION_ATOM_XML_VALUE}, consumes = {MediaType.APPLICATION_JSON_UTF8_VALUE,
             MediaType.APPLICATION_ATOM_XML_VALUE, MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             MediaType.APPLICATION_JSON_VALUE, MediaType.ALL_VALUE})
-    public String rest(@RequestBody(required = false) String body,
-                       @RequestHeader(name = "Accept", required = false) String accept,
-                       @RequestHeader(name = "Content-Type", required = false) String contentType, HttpServletRequest request,
-                       HttpServletResponse response) {
+    public void rest(@RequestBody(required = false) String body,
+                     @RequestHeader(name = "Accept", required = false) String accept,
+                     @RequestHeader(name = "Content-Type", required = false) String contentType, HttpServletRequest request,
+                     HttpServletResponse response) {
+        String requestURI = request.getRequestURI();
+        String reportPath = StringUtils.substringAfter(requestURI, "/rest/");
+
+        //检测输入数据的类型。
+        boolean isJson = StringUtils.contains(contentType, "application/json");
+        boolean isXml = StringUtils.contains(contentType, "application/xml");
+        boolean isForm = StringUtils.contains(contentType, "application/x-www-form-urlencoded")
+                || (!isJson && !isXml);
+
         try {
-            String requestURI = request.getRequestURI();
-            String reportPath = StringUtils.substringAfter(requestURI, "/rest/");
-
-            //检测输入数据的类型。
-            boolean isJson = StringUtils.contains(contentType, "application/json");
-            boolean isXml = StringUtils.contains(contentType, "application/xml");
-            boolean isForm = StringUtils.contains(contentType, "application/x-www-form-urlencoded")
-                    || (!isJson && !isXml);
-
             //设置输出的格式：xml-xstream, json。
             Class<?> xmlOrJsonHelper = accept != null && !StringUtils.contains(accept, "text") && accept.indexOf("xml") > -1 ? XStreamHelper.class
                     : GsonHelper.class;
@@ -104,11 +105,32 @@ public class RestfulController extends BaseController {
 
             Object o = UriManager.invoke(reportPath, request.getMethod(), conditionParams, postData);
 
-            String value = invokeToString(o, conditionParams, xmlOrJsonHelper);
-            return value;
+            String invoke = invokeToString(o, conditionParams, xmlOrJsonHelper);
+            if (isJson) {
+                response.setContentType("application/json;charset=UTF-8");
+            } else if (isXml) {
+                response.setContentType("application/xml;charset=UTF-8");
+            } else {
+                response.setContentType("text/plain;charset=UTF-8");
+            }
+            response.getWriter().print(invoke);
+            SocketHelper.closeWithoutError(response.getWriter());
         } catch (Exception ex) {
-            return GsonHelper.toJsonString(
-                    ResultBean.error().setBody(FCS.get("get json error: {0}", ex.getMessage()).toString()));
+            try {
+                String invoke = GsonHelper.toJsonString(
+                        ResultBean.error().setBody(ex.getMessage()));
+                if (isXml) {
+                    response.setContentType("application/xml;charset=UTF-8");
+                    invoke = XStreamHelper.toXml(
+                            ResultBean.error().setBody(ex.getMessage()));
+                } else {
+                    response.setContentType("application/json;charset=UTF-8");
+                }
+                response.getWriter().print(invoke);
+                SocketHelper.closeWithoutError(response.getWriter());
+            } catch (Exception e) {
+                Exceptions.runtime("HTTP response write error!", e);
+            }
         }
     }
 
